@@ -34,7 +34,7 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 ### Clustering, Developmental Ordering, Differential Expression
 `oeHBCregen_3_renorm_clust_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
-6. Clustering using clusterExperiment (`oeHBCregen_clust.R`)
+8. Clustering using clusterExperiment (`oeHBCregen_clust.R`)
 8. Developmental ordering with slingshot (`oeHBCregenWT_slingshot.Rmd` & `oeHBCregenWTKO_slingshot.Rmd`)
 9. Differential gene expression using limma, along each lineage (`oeHBCregenWT_de.Rmd`)
 11. Preparation of gene sets for Gene Set Enrichment Analysis (GSEA; `oeHBCregenWT_GSEAprep.Rmd`)
@@ -43,7 +43,7 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 ### Visualizations
 `oeHBCregen_3_viz.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
-12. Visualizations based on cell clustering (heatmap of marker genes, tSNE plots, PCA pairs plot, cluster & experimental condition bubble plots; `oeHBCregen_clusterPlots.Rmd` & `oeHBCdiffregen_clusterPlots.Rmd`)
+13. Visualizations based on cell clustering (heatmap of marker genes, tSNE plots, PCA pairs plot, cluster & experimental condition bubble plots; `oeHBCregen_clusterPlots.Rmd` & `oeHBCdiffregen_clusterPlots.Rmd`)
 12. Visualizations incorporating developmental ordering (3D-PCA plots, dot plots; `oeHBCregen_devorderplots.Rmd`)
 12. Heatmaps of cell cycle genes in the neuronal and sustentacular lineages (`oeHBCregen_cellCycle.Rmd`)
 12. Heatmaps of differentially expressed transcription factors by lineage (`oeHBCregen_tf_hm.R`)
