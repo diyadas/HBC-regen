@@ -8,7 +8,7 @@ library(BiocParallel)
 library(optparse)
 
 option_list <- list(
-  make_option("--expt", default="", type="character", help="full form, e.g. oeHBCdiffregen"),
+  make_option("--expt", default="", type="character", help="full form, e.g. oeHBC"),
   make_option("--ncores", default="1", type="double")
 )
 

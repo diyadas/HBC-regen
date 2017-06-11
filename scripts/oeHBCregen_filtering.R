@@ -9,7 +9,7 @@ library(BiocParallel)
 library(optparse)
 
 option_list <- list(
-  make_option("--expt", default="", type="character", help="full form, e.g. oeHBCdiffregen"),
+  make_option("--expt", default="", type="character", help="full form, e.g. oeHBC"),
   make_option("--norm", default=NULL, type="character", help="normalization for excluded samples, if given")
 )
 
