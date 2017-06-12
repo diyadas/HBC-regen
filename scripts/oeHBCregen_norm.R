@@ -15,7 +15,7 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 expt_str <- opt$expt
-if (!is.null(opt$norm)) params <- get(load(paste0("~/normscone/output/clust/",esh,"_",opt$norm,"_params",".Rda")))
+if (!is.null(opt$norm)) params <- get(load(paste0("../output/clust/",esh,"_",opt$norm,"_params",".Rda")))
 
 register(MulticoreParam(workers = opt$ncores))
 
@@ -44,4 +44,4 @@ if (is.null(opt$norm)) {
   }))
 }
 
-save(scone_out, file = file.path(out_dir,paste0(esh,"_scone.Rda")))
+save(scone_out, file = file.path(out_dir,paste0(expt_str,"_scone.Rda")))
