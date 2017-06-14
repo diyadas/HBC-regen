@@ -14,7 +14,7 @@ output:
 ```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
 knitr::opts_chunk$set(fig.align="center", cache=FALSE, error=FALSE, message=FALSE, warning=FALSE)
 
-library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl); library(rglwidget); library(R.utils)
+library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl); library(rglwidget)
 ```
 ```{r setup}
 expt_str <- "oeHBCregenWT"
@@ -27,11 +27,12 @@ load(file.path("../ref",paste0(expt_str, "_exclude_lowqc.Rda")))
 col.pal <- c("#1B9E77", "cyan", "#E7298A", "darkolivegreen3", "darkorange3", "#CCCCCC", "#6A3D9A", "#FCCDE5", "cornflowerblue", "#FFED6F","#FF7F00")
 cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(6,"Reds"))
 ```
-``{r merge}
-### Merging clusters, dropping Fabp5+ contaminants
-load(file.path(clust_dir,paste0(expt_str,"_",nrm_str, "_cm_hier_cons.Rda")))
-cmobj <- makeDendrogram(cm2,dimReduce="var",ndims=1000)
-cmobj <- mergeClusters(cmobj, mergeMethod="locfdr", plotType="mergeMethod", cutoff=0.18)
+### Calculations
+#### Merging clusters, dropping Fabp5+ contaminants
+```{r merge}
+load(file.path(clust_dir,paste0(expt_str,"_",nrm_str, "_cm_all_cons.Rda")))
+cmobj <- makeDendrogram(cm2,dimReduce="PCA",ndims=10)
+cmobj <- mergeClusters(cmobj, mergeMethod="adjP", plotType="mergeMethod", cutoff=0.3)
 cmobj <- cmobj[, !(colnames(cmobjM) %in% exclude_wtlowqc)]
 
 Eh="9"; Esus="3"; En="12";Ehrenew="1"
@@ -45,9 +46,8 @@ expt <- colData(cmobj)$expt[keepcl]
 X <- pcax$x
 names(expt) <- names(clus.labels) <- rownames(X)
 ```
-### Slingshot calculations
 #### Drop resting HBCs from input to slingshot
-```{r drop, echo=FALSE}
+```{r drop}
 drop_cl <- as.numeric(names(table(clus.labels)[table(clus.labels) < 10]))
 keepcl2 <- !(grepl("UI", expt)  & clus.labels ==1) & !(clus.labels %in% drop_cl)
 X2 <- X[keepcl2,]
@@ -75,13 +75,6 @@ nlm <- transform(cmobj)[,rownames(X2)[order(curves[[1]]$pseudotime, na.last = NA
 hlm <- transform(cmobj)[,rownames(X2)[order(curves[[2]]$pseudotime, na.last = NA)]]
 h2lm <- transform(cmobj)[,rownames(X2)[order(curves[[3]]$pseudotime, na.last = NA)]]
 slm <- transform(cmobj)[,rownames(X2)[order(curves[[4]]$pseudotime, na.last = NA)]]
-
-table(clus.labels2[colnames(nlm)])
-table(clus.labels2[colnames(hlm)])
-table(clus.labels2[colnames(h2lm)])
-table(clus.labels2[colnames(slm)])
-table(clus.labels2)
-
 nlclusters <- clus.labels2[colnames(nlm)]
 hlclusters <- clus.labels2[colnames(hlm)]
 h2lclusters <- clus.labels2[colnames(h2lm)]
