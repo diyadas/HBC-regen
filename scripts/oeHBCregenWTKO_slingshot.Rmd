@@ -1,0 +1,132 @@
+---
+title: "Slingshot for all regeneration samples"
+author: "Diya Das"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float: yes
+    fig_width: 10
+    fig_height: 10
+---
+
+```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
+knitr::opts_chunk$set(fig.align="center", cache=FALSE, error=FALSE, message=FALSE, warning=FALSE)
+
+library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl); library(rglwidget)
+```
+```{r setup}
+expt_str <- "oeHBCregenWTKO"
+nrm_str <- "none_fq_ruv1_nobio_nobatch"
+out_dir <- file.path("../output/clust", expt_str)
+viz_dir <- file.path("../output/viz", expt_str)
+
+col.pal <- c("#1B9E77", "#B3DE69", "cyan", "#E7298A", "#CCCCCC", "darkorange3","#E6AB02", "#666666", "#6A3D9A", "cornflowerblue", "#CAB2D6", "#FF7F00", "#FFED6F", "brown1")
+cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(6,"Reds"))
+```
+### Calculations
+#### Merging clusters
+```{r merge}
+load(file.path(clust_dir,paste0(expt_str,"_",nrm_str, "_cm_hier_cons.Rda")))
+cmobjM <- makeDendrogram(cm2,dimReduce="var",ndims=1000)
+cmobjM <- mergeClusters(cmobjM, mergeMethod="locfdr", plotType="mergeMethod", cutoff=0.18)
+
+cmobj <- makeDendrogram(cmobjM,dimReduce="none", ignoreUnassignedVar=TRUE)
+cmobj <- mergeClusters(cmobj, mergeMethod="adjP", plotType="mergeMethod", cutoff=0.07)
+
+clus.labelsWTKO <- primaryCluster(cmobjM); names(clus.labelsWTKO) <- colnames(cmobjM)
+exptWTKO <- colData(cmobjM)$expt; names(exptWTKO) <- colnames(cmobjM)
+exclude_wtlowqc <- names(clus.labelsWTKO)[clus.labelsWTKO==11 & grepl("K5ERRY", exptWTKO)]
+
+save(exclude_wtlowqc, file=file.path("../ref",paste0(esh, "_exclude_lowqc.Rda")))
+```
+#### Drop Fabp5+ cells and -1s and do PCA 
+```{r drop}
+Eh="2"; Esus="4"; En="9";Ehrenew="1";
+f = "7"; hbc3="8"
+
+mergeCl <- primaryCluster(cmobj)
+keepcl <- !(mergeCl %in% c(-1, f,hbc3)) 
+
+pcax <- prcomp(t(transform(cmobj)[,keepcl]))
+clus.labels <- factor(mergeCl[keepcl])
+oclus.labels <- factor(cmobj@clusterMatrix[,"mergeClusters.1"][keepcl])
+expt <- colData(cmobj)$expt[keepcl]
+X <- pcax$x
+names(expt) <- names(oclus.labels) <- names(clus.labels) <- rownames(X)
+```
+#### Drop resting HBCs from input to slingshot
+```{r drop2}
+drop_cl <- as.numeric(names(table(clus.labels)[table(clus.labels) < 10]))
+keepcl2 <- !(grepl("UI", expt)  & clus.labels ==1) & !(clus.labels %in% drop_cl)
+X2 <- X[keepcl2,]
+clus.labels2 <- clus.labels[keepcl2]
+oclus.labels2 <- oclus.labels[keepcl2]
+expt2 <- expt[keepcl2]
+maxN <- min(table(clus.labels2))-1
+
+save(X,X2,clus.labels,clus.labels2, oclus.labels, oclus.labels2, expt, expt2, col.pal, cole, keepcl2, keepcl, drop_cl, file=file.path(out_dir, paste0(expt_str,"_PCA.Rda")))
+```
+
+#### Calculate lineages and curves
+```{r slingshot}
+ndims <- 6
+lineages <- get_lineages(X2[,1:ndims], clus.labels2, start.clus = Eh, end.clus = c(Esus, Ehrenew))
+for (i in 1:ncol(lineages$C)) print(lineages[[i]])
+curves <- get_curves(X2[,1:ndims],clus.labels2,lineages,shrink = 1,extend = "n")
+save(lineages, curves, file=file.path(out_dir, paste0(expt_str, "_slingshot_out.Rda")))
+```
+
+### Saving slingshot output
+```{r lineagedata}
+
+nlm <- transform(cmobj)[,rownames(X2)[order(curves[[1]]$pseudotime, na.last = NA)]]
+hlm <- transform(cmobj)[,rownames(X2)[order(curves[[2]]$pseudotime, na.last = NA)]]
+slm <- transform(cmobj)[,rownames(X2)[order(curves[[3]]$pseudotime, na.last = NA)]]
+nlclusters <- oclus.labels2[colnames(nlm)]
+hlclusters <- oclus.labels2[colnames(hlm)]
+slclusters <- oclus.labels2[colnames(slm)]
+
+exptUIcl1 <- names(expt)[grepl("UI", expt) & clus.labels==1]
+UIcl1mat <- transform(cmobj)[, exptUIcl1]
+
+nlm2 <- cbind(UIcl1mat, nlm)
+slm2 <- cbind(UIcl1mat, slm)
+hlm2 <- cbind(UIcl1mat, hlm)
+nlclusters2 <- oclus.labels[colnames(nlm2)]
+hlclusters2 <- oclus.labels[colnames(hlm2)]
+slclusters2 <- oclus.labels[colnames(slm2)]
+
+save(UIcl1mat, nlm, hlm, slm, nlclusters, slclusters, hlclusters, file=file.path(out_dir, paste0(expt_str, "_lineageData.Rda")))
+
+save(nlm2, hlm2, slm2, nlclusters2, slclusters2, hlclusters2, file=file.path(out_dir, paste0(expt_str, "_lineageData2.Rda")))
+
+cmobj <- cmobj[, colnames(cmobj) %in% names(oclus.labels)]
+cmobjM <- cmobjM[, colnames(cmobjM) %in% names(clus.labels)]
+
+save(cmobjM, cmobj, file=file.path(out_dir, paste0(expt_str, "_cmmerged.Rda")))
+```
+
+### Plotting data and Slingshot results
+```{r data}
+centers <- t(sapply(levels(oclus.labels),function(clID){
+  x.sub <- X[oclus.labels == clID,dplot]
+  return(colMeans(x.sub))
+}))
+center.col <- sapply(levels(oclus.labels),function(clID){
+  ocol.pal[oclus.labels][which.max(oclus.labels == clID)]
+})
+
+open3d()
+plot3d(X[!keepcl2,1:3],col=col.pal[oclus.labels[!keepcl2]],alpha=0.2, pch = 19, cex = 1, size=4, xlab="PC 1", ylab="PC 2", zlab="PC 3", aspect="iso", box=FALSE, axes=FALSE)
+plot3d(X2[,1:3],col=col.pal[oclus.labels2],alpha=0.7, pch = 19, cex = 1, size=4, add=TRUE)
+for (i in seq_along(curves)){
+plot3d(curves[[i]]$s[order(curves[[i]]$lambda),1:3],type="l",add=TRUE,lwd=2,col=col.pal[which.max(tail(lineages[[i]],1)==levels(oclus.labels))])
+}
+plot3d(centers,col=center.col, add=TRUE,size=15)
+axes3d(tick=FALSE)
+par3d(windowRect = c(20, 30, 800, 800))
+rgl.postscript(file.path(viz_dir,paste0(expt_str, "_slingshot_clus_",ndims, "_",Sys.Date(), ".svg")), fmt="svg")
+rglwidget()
+```
