@@ -1,0 +1,148 @@
+---
+title: "oeHBCregen cluster plots"
+author: "Diya Das, Russell Fletcher"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+  code_folding: hide
+  toc: yes
+  toc_float: yes
+  fig_width: 10
+  fig_height: 10
+---
+```{r options, echo=TRUE, results="markup",message=FALSE, error=FALSE}
+knitr::opts_chunk$set(cache=FALSE, fig.align="center", fig.width=10, error=TRUE,message=TRUE, echo=TRUE, warning=TRUE,results="markup", eval=FALSE)
+library(slingshot)
+library(clusterExperiment)
+library(RColorBrewer)
+library(rgl)
+library(rglwidget)
+library(Rtsne)
+library(scales)
+library(ggplot2)
+NMF::nmf.options(grid.patch=TRUE)
+```
+
+## Setup
+```{r setup}
+expt_str <- "oeHBCregenWT"
+#expt_str <- "oeHBCregenWTKO"
+out_dir <- file.path("../output/clust", expt_str)
+viz_dir <- file.path("../output/viz", expt_str)
+
+load(file.path(out_dir, paste0(expt_str, "_lineageData2.Rda")))
+load(file.path(out_dir, paste0(expt_str, "_cmmerged.Rda")))
+load(file.path(out_dir, paste0(expt_str,"_PCA.Rda")))
+
+cole <- c(brewer.pal(length(grep("K5ERRY", levels(expt)))+2, "Blues")[-(1:2)],brewer.pal(length(grep("KO", levels(expt))), "Reds"))
+
+if (expt_str=="EWT") cluster_ord <- c(9,6,2,5,7,11,12,3,8,4,1)
+if (expt_str=="E3") cluster_ord <- c(4,1,12,5,7,2,13,3,6,9,15,16,14)
+
+
+```
+
+## Visualizations
+
+### Heatmap of marker genes
+```{r heatmap}
+oe_markers <- intersect(unlist(read.table("../ref/oe_markers32+regen.txt")),rownames(assay(cmobj)))
+breakv <- c(min(nlm2), seq(0, quantile(nlm2[nlm2 > 0], .99, na.rm = TRUE), length = 50), max(nlm2))
+
+allclus.labels<- clus.labels[order(match(clus.labels,cluster_ord))]
+batch=droplevels(colData(cmobj)[names(allclus.labels),"batch"])
+
+pdf(file=file.path(viz_dir,paste0(expt_str, "_selectmarker_expt_", Sys.Date(), ".pdf")), width=7, height=4)
+plotHeatmap(transform(cmobj)[oe_markers,names(allclus.labels)], clusterSamples=FALSE,clusterFeatures=FALSE, breaks=breakv, sampleData=data.frame(clusters=allclus.labels, expt=expt[names(allclus.labels)], batch=batch), clusterLegend=list(clusters=col.pal,expt=cole,batch=bigPalette))
+dev.off()
+
+```
+
+### PCA pairs plot
+```{r pairs}
+pdf(file = file.path(viz_dir,paste0(expt_str, "_pairs_", Sys.Date(), ".pdf")), width=8, height=8)
+pairs(X[,1:6], col=alpha(col.pal[clus.labels],1),pch=19, xaxt='n',yaxt='n', asp=1, cex=0.5)
+dev.off()
+
+pdf(file = file.path(viz_dir,paste0(expt_str, "_pairsNS_", Sys.Date(), ".pdf")), width=8, height=8)
+pairs(t(nlm2)[,c("Omp", "Gap43", "Cnga2", "Sox11", "Cyp2g1", "Cyp1a2")], col=alpha(col.pal[clus.labels[colnames(nlm2)]],1),pch=19, cex=0.5)
+legend("bottomright",levels(clus.labels),fill=col.pal,cex=0.5, xpd=TRUE)
+dev.off()
+
+```
+### t-SNE
+```{r tsne}
+rtsne_fx <- function(cmobj, clusters,ngenes=500, perplexity=perplexity, max_iter=max_iter) {
+  set.seed(9887)
+  vars <- apply(transform(cmobj)[,names(clusters)], 1, var)
+  vars <- sort(vars, decreasing=TRUE)
+  var_data <- transform(cmobj)[names(vars)[1:ngenes],]
+  tsne_data <- Rtsne(t(var_data[,names(clusters)]), perplexity = perplexity, max_iter = max_iter)
+  return(tsne_data)
+}
+
+perplexity <-30
+iter <-1000
+ 
+tsne_data <- rtsne_fx(cmobj,clus.labels,ngenes=nrow(cmobj), perplexity=perplexity, max_iter=iter)
+```
+#### t-SNE by cluster
+```{r tsne-clus}
+svg(file.path(viz_dir,paste(expt_str,"tsne_points",Sys.Date(),perplexity,iter,".svg", sep="_")), width=3.25,height=3.25)
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+plot(tsne_data$Y, col=col.pal[clus.labels], pch=19, xaxt='n',yaxt='n',cex=0.5,ylab="",xlab="", main=perplexity)
+dev.off()
+
+svg(file.path(viz_dir,paste0(expt_str,"_tsne_medoids_",Sys.Date(),".svg")), width=3.25,height=3.25)
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+plot(tsne_data$Y, col=alpha(col.pal[clus.labels],0.1), pch=19, xaxt='n',yaxt='n',cex=0.5,ylab='',xlab='')
+centers <- t(sapply(levels(clus.labels),function(clID){
+  x.sub <- tsne_data$Y[clus.labels == clID,]
+  return(matrixStats::colMedians(x.sub))
+}))
+center.col <- sapply(levels(clus.labels),function(clID){
+  col.pal[clus.labels][which.max(clus.labels == clID)]
+})
+points(centers, cex = 1, pch=19,col = center.col)
+dev.off()
+```
+
+#### t-SNE by experimental condition (timepoint)
+```{r tsne-expt}
+svg(file.path(viz_dir,paste0(expt_str,"_tsne_expt_",Sys.Date(),".svg")), width=10, height=15)
+par(mar=c(0.5, 0.5, 0.5, 0.5), oma=c(0, 0, 0, 0))
+layout(matrix(c(1:18), 3, 6, byrow=TRUE), widths = rep(lcm(3.8), 6), heights = rep(lcm(3.8), 3))
+
+tsne_sub <- function(tsne_data, i){
+  plot(tsne_data$Y, col=alpha("grey", 0.5), pch=19, xlab="", ylab='', xaxt='n', yaxt='n', cex=0.5)
+  points(tsne_data$Y[expt==levels(expt)[i],], cex=0.5, col=cole[i], pch=19)
+}
+
+for (i in 1:sum(grepl("K5ERRY", levels(expt)))){
+  tsne_sub(tsne_data,i)
+}
+dev.off()
+```
+
+### Cluster and timepoint composition - bubble charts
+```{r bubble}
+t1 <- theme(plot.background=element_blank(), panel.grid.minor=element_blank(), panel.border=element_blank(), panel.background=element_blank(), axis.line=element_blank(),axis.ticks=element_blank(), legend.title=element_blank(), legend.background=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),legend.key= element_rect(fill="white"))
+t2 <- theme(axis.title.x=element_blank(), axis.title.y=element_blank(),  plot.title=element_blank(),legend.text=element_blank())
+
+exptbyclus <- reshape2::melt(prop.table(table(Condition=factor(expt, levels=rev(levels(expt))), Cluster=clus.labels), 1), value.name="Percent")
+exptbyclus$Cluster <- factor(exptbyclus$Cluster, levels=cluster_ord)
+clusbyexpt <- reshape2::melt(prop.table(table(Condition=factor(expt,levels=rev(levels(expt))),Cluster=factor(clus.labels, levels=cluster_ord)),2),value.name="Percent")
+clusbyexpt$Cluster <- factor(clusbyexpt$Cluster, levels=cluster_ord)
+
+if (expt_str == "Expt3") levels(clusbyexpt_WT$Cluster) <- levels(clusbyexpt_KO$Cluster) <- levels(clusbyexpt$Cluster) <- levels(exptbyclus$Cluster)<- c("HBC*1", "HBC*2", "HBC*3","GBC/MV", "INP1/2", "INP3", "iOSN","mOSN","SUS","resting/renewed HBC")
+
+svg(file.path(viz_dir, paste0(expt_str,"_exptbyclus_",Sys.Date(),".svg")),width=12)
+exptbyclus.plt <- ggplot(exptbyclus, aes(Cluster, Condition, size=ifelse(Percent==0, NA, Percent)))
+exptbyclus.plt + t1 + t2 + geom_point(color = "slategrey") + scale_size_area(max_size=20, name=NULL, breaks=c(0.25, 0.5, 0.75)) + theme(panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=0.1, color="black"))
+dev.off()
+
+svg(file.path(viz_dir, paste0(expt_str,"_clusbyexpt_",Sys.Date(),".svg")),width=12)
+clusbyexpt.plt <- ggplot(clusbyexpt, aes(Cluster, Condition, size=ifelse(Percent==0, NA, Percent)))
+clusbyexpt.plt + t1 + t2 + geom_point(color = "slategrey") + scale_size_area(max_size=20, name=NULL, breaks=c(0.25, 0.5, 0.75)) + theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_line(size=0.1, color="black"))
+dev.off()
+```
