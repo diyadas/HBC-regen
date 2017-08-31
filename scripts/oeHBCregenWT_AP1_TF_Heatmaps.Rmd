@@ -1,0 +1,56 @@
+---
+title: "Lineage Specific AP1 TF Heatmaps"
+author: "Russell Fletcher and Diya Das"
+date: '`r Sys.Date()`'
+output:
+html_document:
+code_folding: hide
+toc: yes
+toc_float: yes
+fig_width: 10
+fig_height: 10
+---
+
+```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
+knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
+
+library(clusterExperiment)
+library(RColorBrewer)
+NMF::nmf.options(grid.patch=TRUE)##put anywhere in the script to remove first (blank) page of heatmap pdfs
+
+expt_str <- "ExptWT"
+esh <- gsub("Expt","E",expt_str)
+clust_dir <- file.path("../output/clust", expt_str)
+# DE_dir <- file.path("../output/DE", expt_str)
+# DEG_dir <- file.path("../output/DEG",expt_str)
+viz_dir <- file.path("../output/viz", expt_str, "geneSetHeatmaps")
+viz_dir <- file.path("../output/viz", expt_str)
+
+load(file=file.path(clust_dir, paste0(esh, "_PCA.Rda")))
+rm(X, X2)
+load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
+
+ccn2 <- col.pal[-c(3,4,8)] 
+ccs2 <- col.pal[-c(2,4,5,7,8,10,11)]
+# cch2 <- col.pal[-c(2,3,5,7,10,11)]
+
+```
+
+```{r geneSetHeatmap}
+breakw <- c(min(nlm2), seq(0, quantile(nlm2[nlm2 > 0], .99, na.rm = TRUE), length = 50), max(nlm2))
+
+upr <- intersect(read.table("../ref/uprG.txt")$V1, rownames(nlm2))
+pdf(file=file.path(viz_dir, paste0(expt_str, "_NL_selectUPRgenes.pdf")), height=8.5, width=11)
+plotHeatmap(nlm2[upr,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=nlclusters2), clusterLegend=list(clusters=ccn2), main=paste("NL_selectUPRgenes"))
+dev.off()
+
+ap1 <- intersect(read.table("../ref/genesAP1.txt")$V1, rownames(nlm2))
+pdf(file=file.path(viz_dir, paste0(expt_str, "_NL_AP1genes.pdf")), height=8.5, width=11)
+plotHeatmap(nlm2[ap1,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=nlclusters2), clusterLegend=list(clusters=ccn2), main=paste("NL_AP1genes"))
+dev.off()
+pdf(file=file.path(viz_dir, paste0(expt_str, "_SL_AP1genes.pdf")), height=8.5, width=11)
+plotHeatmap(slm2[ap1,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=slclusters2), clusterLegend=list(clusters=ccs2), main=paste("SL_AP1genes"))
+dev.off()
+
+```
