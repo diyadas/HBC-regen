@@ -1,0 +1,148 @@
+---
+title: "Combined scRNA-Seq Data Differential Expression"
+author: "Russell Fletcher"
+date: '`r Sys.Date()`'
+output:
+html_document:
+code_folding: hide
+toc: yes
+toc_float: yes
+fig_width: 10
+fig_height: 10
+---
+
+```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
+knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
+library(clusterExperiment); library(RColorBrewer); library(limma)
+NMF::nmf.options(grid.patch=TRUE)
+
+expt_str <- "Expt5"
+esh <- gsub("Expt","E",expt_str)
+clust_dir <- file.path("../output/clust", expt_str)
+viz_dir <- file.path("../output/viz", expt_str)
+DE_dir <- file.path("../output/DE", expt_str)
+
+load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_hier_final_clusters.Rda")))
+
+colpal <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
+wtcols <- c(brewer.pal(8, "Blues")[-c(1:2)])
+kocols <- c(brewer.pal(5, "Reds"))
+socols <- c(brewer.pal(12, "Paired")[10])
+cols <- c(wtcols, kocols, socols)
+
+
+```
+
+```{r differentialExpression}
+
+#####-----first with limma on log2 transformed post-SCONE normalized counts
+
+##--one versus all comparisons
+oneVallDE500 <- getBestFeatures(transform(cmobj2), cmobj2@clusterMatrix[,1], contrastType="OneAgainstAll", number=500, contrastAdj="All", p.value=0.05)
+write.table(oneVallDE500, file.path(DE_dir, paste0(esh, "_oneVall500_limma.txt")), quote=FALSE,sep="\t")
+oneVallDE1000 <- getBestFeatures(transform(cmobj2), cmobj2@clusterMatrix[,1], contrastType="OneAgainstAll", number=1000, contrastAdj="All", p.value=0.05)
+write.table(oneVallDE1000, file.path(DE_dir, paste0(esh, "_oneVall1000_limma.txt")),quote=FALSE,sep="\t")
+oneVallDEall <- getBestFeatures(transform(cmobj2), cmobj2@clusterMatrix[,1], contrastType="OneAgainstAll", number=Inf, contrastAdj="All", p.value=1)
+write.table(oneVallDEall, file.path(DE_dir, paste0(esh, "_oneVall_all_limma.txt")), quote=FALSE, sep="\t")
+            
+##--pair-wise comparisons            
+pairsDE500 <-getBestFeatures(transform(cmobj2), cmobj2@clusterMatrix[,1], contrastType="Pairs", number=500, contrastAdj="All", p.value=0.05)
+write.table(pairsDE500, file.path(DE_dir, paste0(esh, "pairs500_limma.txt")), quote=FALSE,sep="\t")
+pairsDE1000 <-getBestFeatures(transform(cmobj2), cmobj2@clusterMatrix[,1], contrastType="Pairs", number=1000, contrastAdj="All", p.value=0.05)
+write.table(pairsDE1000, file.path(DE_dir, paste0(esh, "pairs1000_limma.txt")), quote=FALSE, sep="\t")
+pairsDEall <-getBestFeatures(transform(cmobj2), cmobj2@clusterMatrix[,1], contrastType="Pairs", number=Inf, contrastAdj="All", p.value=1)
+write.table(pairsDEall, file.path(DE_dir, paste0(esh, "pairs_all_limma.txt")), quote=FALSE, sep="\t")
+
+##-- selecting unique DE genes
+E5_oneVall500 <- unique(oneVallDE500$Feature)
+E5_oneVallPairs500 <- unique(c(oneVallDE500$Feature,pairsDE500$Feature))
+
+#####-----now with limma voom on post-SCONE normalized counts; note that I add 0.5 and voom will add 0.5 more - otherwise, there are issues with normalized counts with values < -0.5.
+
+oneVallDE500v <- getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="OneAgainstAll", number=500, contrastAdj="All", p.value=0.05, isCount=TRUE)
+write.table(oneVallDE500v, file.path(DE_dir, paste0(esh, "_oneVall500_voom.txt")), quote=FALSE, sep="\t")
+oneVallDE1000v <- getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="OneAgainstAll", number=1000, contrastAdj="All", p.value=0.05, isCount=TRUE)
+write.table(oneVallDE1000v, file.path(DE_dir, paste0(esh, "_oneVall1000_voom.txt")), quote=FALSE, sep="\t")
+oneVallDEallv <- getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="OneAgainstAll", number=Inf, contrastAdj="All", p.value=1, isCount=TRUE)
+write.table(oneVallDEallv, file.path(DE_dir, paste0(esh, "_oneVall_all_voom.txt")), quote=FALSE, sep="\t")
+
+
+pairsDE500v <-getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="Pairs", number=500, contrastAdj="All", p.value=0.05, isCount=TRUE)
+write.table(pairsDE500v, file.path(DE_dir, paste0(esh, "pairs500_voom.txt")), quote=FALSE, sep="\t")
+pairsDE1000v <-getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="Pairs",number=1000, contrastAdj="All", p.value=0.05, isCount=TRUE) 
+write.table(pairsDE1000v, file.path(DE_dir, paste0(esh, "pairs1000_voom.txt")), quote=FALSE, sep="\t")
+pairsDEallv <-getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="Pairs", number=Inf, contrastAdj="All", p.value=1, isCount=TRUE)
+write.table(pairsDEallv, file.path(DE_dir, paste0(esh, "_pairs_all_voom.txt")), quote=FALSE, sep="\t")
+
+##-- selecting unique DE genes
+E5_oneVall500V <- unique(oneVallDE500v$Feature)
+E5_oneVallPairs500V <- unique(c(oneVallDE500v$Feature,pairsDE500v$Feature))
+
+
+save(oneVallDEallv, oneVallDE1000v, oneVallDE500v, file = file.path(DE_dir, paste0(esh, "_oneVall_voomDE.Rda")))
+save(oneVallDEall, oneVallDE1000, oneVallDE500, file = file.path(DE_dir, paste0(esh, "_oneVall_limmaDE.Rda")))
+save(pairsDEallv, pairsDE1000v, pairsDE500v, file = file.path(DE_dir, paste0(esh, "_pairWise_voomDE.Rda")))
+save(pairsDEall, pairsDE1000, pairsDE500, file = file.path(DE_dir, paste0(esh, "_pairWise_limmaDE.Rda")))
+
+
+
+```
+
+
+```{r HBCactivatedVsHBCtransition}
+#####-----To compare the regeneration HBC activated cluster to the p63 cKO differentiation HBC transition cluster
+#- make tables of the pair-wise DE between them
+#- make heatmaps of the selected DE genes to highlight the difference
+#- later use this data with the GSEA data
+
+load(file = file.path(DE_dir, paste0(esh, "_cl5Vscl19_DE.Rda")))
+###---cluster 5 is the activated cluster; cluster 19 is the transition cluster
+cl5vscl19 <- pairsDEallv[pairsDEallv$Contrast == "X19-X5",]
+#cl5vscl19 <- pairsDE1000v[pairsDE1000v$Contrast == "X19-X5",]
+cl5vscl19 <- cl5vscl19[cl5vscl19$adj.P.Val < 0.01 & abs(cl5vscl19$logFC) > 1, ]
+cl5Up <- cl5vscl19[cl5vscl19$logFC < 0, ]
+cl19Up <- cl5vscl19[cl5vscl19$logFC > 0, ]
+cl5UpM2 <- cl5vscl19[cl5vscl19$logFC <= -2, ]
+cl19UpM2 <- cl5vscl19[cl5vscl19$logFC >= 2, ]
+
+cl19UpM2List <- cl19UpM2$Feature
+cl5UpM2List <- cl5UpM2$Feature
+
+save(cl5vscl19, cl5Up, cl19Up, cl5UpM2, cl19UpM2, file = file.path(DE_dir, paste0(esh, "_cl5Vscl19_DE.Rda")))
+library(xlsx)
+write.xlsx(cl5vscl19, file=file.path(DE_dir, paste0(esh, "cl5Vscl19DE.xlsx")), sheetName="cl5cl19pairwise")
+write.xlsx(cl5Up, file=file.path(DE_dir, paste0(esh, "cl5Vscl19DE.xlsx")), sheetName="cl5Up", append=TRUE)
+write.xlsx(cl19Up, file=file.path(DE_dir, paste0(esh, "cl5Vscl19DE.xlsx")), sheetName="cl19Up", append=TRUE)
+write.xlsx(cl5UpM2, file=file.path(DE_dir, paste0(esh, "cl5Vscl19DE.xlsx")), sheetName="cl5UpM2", append=TRUE)
+write.xlsx(cl19UpM2, file=file.path(DE_dir, paste0(esh, "cl5Vscl19DE.xlsx")), sheetName="cl19UpM2", append=TRUE)
+
+##--ordering the clusters into a logical developmental relationship order but placing cl5 next to cl19
+E5_clustOrder <- c(1,9,2,14,6,10,8,21,5,19,17,4,15,20,11,12,24,3,13,7,25,16,22,26,23,18)
+clus.labels <- primaryCluster(cmobj2)
+names(clus.labels) <- colnames(cmobj2)
+clustOrder <- clus.labels[order(match(clus.labels, E5_clustOrder))]
+
+oe_markers <- intersect(unlist(read.table("../ref/oe_markers27.txt")),rownames(assay(cmobj)))
+breakv <- c(min(transform(cmobj2)), seq(0, quantile(transform(cmobj2)[transform(cmobj2) > 0], .99, na.rm = TRUE), length = 50), max(transform(cmobj2)))
+
+pdf(file=file.path(viz_dir,paste0(expt_str, "_cl19UpM2Versuscl5.pdf")), width=11, height=8)
+plotHeatmap(transform(cmobj2)[cl19UpM2List, names(clustOrder)], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakv, sampleData=data.frame(clusters=clustOrder), clusterLegend=list(clusters=colpal))
+dev.off()
+
+pdf(file=file.path(viz_dir,paste0(expt_str, "_cl5UpM2Versuscl19.pdf")), width=11, height=8)
+plotHeatmap(transform(cmobj2)[cl5UpM2List, names(clustOrder)], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakv, sampleData=data.frame(clusters=clustOrder), clusterLegend=list(clusters=colpal))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
