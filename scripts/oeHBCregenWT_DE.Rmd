@@ -1,0 +1,251 @@
+---
+title: "Wild Type Regeneration, Differential Expression"
+author: "Russell Fletcher"
+date: '`r Sys.Date()`'
+output:
+html_document:
+code_folding: hide
+toc: yes
+toc_float: yes
+fig_width: 10
+fig_height: 10
+---
+
+```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
+knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
+
+expt_str <- "ExptWT"
+clust_dir <- file.path("../output/clust", expt_str)
+viz_dir <- file.path("../output/viz", expt_str)
+DE_dir <- file.path("../output/DE", expt_str)
+esh <- gsub("Expt","E",expt_str)
+
+library(clusterExperiment); library(RColorBrewer); library(limma)
+```
+
+######-----Need to write a magic DE function to shorten this when I find the free time.
+### loading wt regeneration data
+```{r loadingData}
+
+load(file=file.path(clust_dir, paste0(esh, "_PCA.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_lineageData1.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
+cole <- c(brewer.pal(8, "Blues")[-c(1:2)])
+
+Xmat <- transform(cmobjM)
+Xmat <- Xmat[,rownames(X)]
+
+```
+
+
+### differential expression with limma using 24HPI HBCactivated as starting point
+```{r differentialExpression}
+
+###--- neuronal lineage DE
+##-- one versus all comparisons
+NLoneVallDE500 <- getBestFeatures(nlm, nlclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(NLoneVallDE500, file.path(DE_dir,"NL_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+NLoneVallDE1000 <- getBestFeatures(nlm, nlclusters, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(NLoneVallDE1000, file.path(DE_dir,"NL_DE_oneVall_limma_1000.txt"),quote=FALSE,sep="\t")
+NLoneVallDEall <- getBestFeatures(nlm, nlclusters, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(NLoneVallDEall, file.path(DE_dir,"NL_DE_oneVall_limma_all.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+NLpairsDE500 <- getBestFeatures(nlm, nlclusters, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(NLpairsDE500, file.path(DE_dir,"NL_DE_Pairs_limma_500.txt"),quote=FALSE,sep="\t")
+NLpairsDE1000 <- getBestFeatures(nlm, nlclusters, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(NLpairsDE1000, file.path(DE_dir,"NL_DE_Pairs_limma_1000.txt"),quote=FALSE,sep="\t")
+NLpairsDEall <- getBestFeatures(nlm, nlclusters, contrastType="Pairs",number=Inf, p.value=1)
+write.table(NLpairsDEall, file.path(DE_dir,"NL_DE_Pairs_limma_all.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+NL_DEgenesA <- unique(NLoneVallDE500$Feature)
+NL_DEgenesB <- unique(c(NLoneVallDE500$Feature,NLpairsDE500$Feature))
+NL_DEgenesC <- unique(NLoneVallDE1000$Feature)
+NL_DEgenesD <- unique(c(NLoneVallDE1000$Feature,NLpairsDE1000$Feature))
+
+###--- sustentacular cell lineage DE
+##-- one versus all comparisons
+SLoneVallDE500 <- getBestFeatures(slm, slclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(SLoneVallDE500, file.path(DE_dir,"SL_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+SLoneVallDE1000 <- getBestFeatures(slm, slclusters, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(SLoneVallDE1000, file.path(DE_dir,"SL_DE_oneVall_limma_1000.txt"),quote=FALSE,sep="\t")
+SLoneVallDEall <- getBestFeatures(slm, slclusters, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(SLoneVallDEall, file.path(DE_dir,"SL_DE_oneVall_limma_all.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+SLpairsDE500 <- getBestFeatures(slm, slclusters, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(SLpairsDE500, file.path(DE_dir,"SL_DE_Pairs_limma_500.txt"),quote=FALSE,sep="\t")
+SLpairsDE1000 <- getBestFeatures(slm, slclusters, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(SLpairsDE1000, file.path(DE_dir,"SL_DE_Pairs_limma_1000.txt"),quote=FALSE,sep="\t")
+SLpairsDEall <- getBestFeatures(slm, slclusters, contrastType="Pairs",number=Inf, p.value=1)
+write.table(SLpairsDEall, file.path(DE_dir,"SL_DE_Pairs_limma_all.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+SL_DEgenesA <- unique(SLoneVallDE500$Feature)
+SL_DEgenesB <- unique(c(SLoneVallDE500$Feature,SLpairsDE500$Feature))
+SL_DEgenesC <- unique(SLoneVallDE1000$Feature)
+SL_DEgenesD <- unique(c(SLoneVallDE1000$Feature,SLpairsDE1000$Feature))
+
+###--- HBC renewal lineage 1 DE
+##-- one versus all comparisons
+HLoneVallDE500 <- getBestFeatures(hlm, hlclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(HLoneVallDE500, file.path(DE_dir,"HL_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+HLoneVallDE1000 <- getBestFeatures(hlm, hlclusters, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(HLoneVallDE1000, file.path(DE_dir,"HL_DE_oneVall_limma_1000.txt"),quote=FALSE,sep="\t")
+HLoneVallDEall <- getBestFeatures(hlm, hlclusters, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(HLoneVallDEall, file.path(DE_dir,"HL_DE_oneVall_limma_all.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+HLpairsDE500 <- getBestFeatures(hlm, hlclusters, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(HLpairsDE500, file.path(DE_dir,"HL_DE_Pairs_limma_500.txt"),quote=FALSE,sep="\t")
+HLpairsDE1000 <- getBestFeatures(hlm, hlclusters, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(HLpairsDE1000, file.path(DE_dir,"HL_DE_Pairs_limma_1000.txt"),quote=FALSE,sep="\t")
+HLpairsDEall <- getBestFeatures(hlm, hlclusters, contrastType="Pairs",number=Inf, p.value=1)
+write.table(HLpairsDEall, file.path(DE_dir,"HL_DE_Pairs_limma_all.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+HL_DEgenesA <- unique(HLoneVallDE500$Feature)
+HL_DEgenesB <- unique(c(HLoneVallDE500$Feature,HLpairsDE500$Feature))
+HL_DEgenesC <- unique(HLoneVallDE1000$Feature)
+HL_DEgenesD <- unique(c(HLoneVallDE1000$Feature,HLpairsDE1000$Feature))
+
+###--- saving DE gene matrices and lists
+save(HLoneVallDE500, SLoneVallDE500, NLoneVallDE500, file=file.path(DE_dir,paste0(esh,"_oneVall500DE.Rda")))
+save(HLoneVallDE1000, SLoneVallDE1000, NLoneVallDE1000, file=file.path(DE_dir,paste0(esh,"_oneVall1000DE.Rda")))
+save(NL_DEgenesD, NL_DEgenesC, NL_DEgenesB, NL_DEgenesA, SL_DEgenesD, SL_DEgenesC, SL_DEgenesB, SL_DEgenesA, HL_DEgenesD, HL_DEgenesC, HL_DEgenesB, HL_DEgenesA, file=file.path(DE_dir, paste0(esh, "DEgeneLists.Rda")))
+
+###--- HBC renewal lineage 2 DE
+##-- one versus all comparisons
+HL2oneVallDE500 <- getBestFeatures(h2lm, h2lclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(HL2oneVallDE500, file.path(DE_dir,"HL2_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+HL2oneVallDE1000 <- getBestFeatures(h2lm, h2lclusters, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(HL2oneVallDE1000, file.path(DE_dir,"HL2_DE_oneVall_limma_1000.txt"),quote=FALSE,sep="\t")
+HL2oneVallDEall <- getBestFeatures(h2lm, h2lclusters, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(HL2oneVallDEall, file.path(DE_dir,"HL2_DE_oneVall_limma_all.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+HL2pairsDE500 <- getBestFeatures(h2lm, h2lclusters, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(HL2pairsDE500, file.path(DE_dir,"HL2_DE_Pairs_limma_500.txt"),quote=FALSE,sep="\t")
+HL2pairsDE1000 <- getBestFeatures(h2lm, h2lclusters, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(HL2pairsDE1000, file.path(DE_dir,"HL2_DE_Pairs_limma_1000.txt"),quote=FALSE,sep="\t")
+HL2pairsDEall <- getBestFeatures(h2lm, h2lclusters, contrastType="Pairs",number=Inf, p.value=1)
+write.table(HL2pairsDEall, file.path(DE_dir,"HL2_DE_Pairs_limma_all.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+HL2_DEgenesA <- unique(HL2oneVallDE500$Feature)
+HL2_DEgenesB <- unique(c(HL2oneVallDE500$Feature,HLpairsDE500$Feature))
+HL2_DEgenesC <- unique(HL2oneVallDE1000$Feature)
+HL2_DEgenesD <- unique(c(HL2oneVallDE1000$Feature,HLpairsDE1000$Feature))
+
+###--- saving DE gene matrices and lists
+save(HLoneVallDE500, HL2oneVallDE500, SLoneVallDE500, NLoneVallDE500, file=file.path(DE_dir,paste0(esh,"_oneVall500DE.Rda")))
+save(HLoneVallDE1000, HL2oneVallDE1000, SLoneVallDE1000, NLoneVallDE1000, file=file.path(DE_dir,paste0(esh,"_oneVall1000DE.Rda")))
+save(NL_DEgenesD, NL_DEgenesC, NL_DEgenesB, NL_DEgenesA, SL_DEgenesD, SL_DEgenesC, SL_DEgenesB, SL_DEgenesA, HL_DEgenesD, HL_DEgenesC, HL_DEgenesB, HL_DEgenesA, HL2_DEgenesD, HL2_DEgenesC, HL2_DEgenesB, HL2_DEgenesA,file=file.path(DE_dir, paste0(esh, "DEgeneLists.Rda")))
+
+
+```
+
+### DE using the UI/cl1 cells as the start prior to the HBCact(24) starting point from slingshot
+```{r differentialExpression2}
+
+###--- neuronal lineage DE
+##-- one versus all comparisons
+NLoneVallDE500_2 <- getBestFeatures(nlm2, nlclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(NLoneVallDE500_2, file.path(DE_dir,"NL_DE_oneVall_limma_500_2.txt"),quote=FALSE,sep="\t")
+NLoneVallDE1000_2 <- getBestFeatures(nlm2, nlclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(NLoneVallDE1000_2, file.path(DE_dir,"NL_DE_oneVall_limma_1000_2.txt"),quote=FALSE,sep="\t")
+NLoneVallDEall_2 <- getBestFeatures(nlm2, nlclusters2, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(NLoneVallDEall_2, file.path(DE_dir,"NL_DE_oneVall_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+NLpairsDE500_2 <- getBestFeatures(nlm2, nlclusters2, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(NLpairsDE500_2, file.path(DE_dir,"NL_DE_Pairs_limma_500_2.txt"),quote=FALSE,sep="\t")
+NLpairsDE1000_2 <- getBestFeatures(nlm2, nlclusters2, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(NLpairsDE1000_2, file.path(DE_dir,"NL_DE_Pairs_limma_1000_2.txt"),quote=FALSE,sep="\t")
+NLpairsDEall_2 <- getBestFeatures(nlm2, nlclusters2, contrastType="Pairs",number=Inf, p.value=1)
+write.table(NLpairsDEall_2, file.path(DE_dir,"NL_DE_Pairs_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+NL_DEgenesA2 <- unique(NLoneVallDE500_2$Feature)
+NL_DEgenesB2 <- unique(c(NLoneVallDE500_2$Feature,NLpairsDE500_2$Feature))
+NL_DEgenesC2 <- unique(NLoneVallDE1000_2$Feature)
+NL_DEgenesD2 <- unique(c(NLoneVallDE1000_2$Feature,NLpairsDE1000_2$Feature))
+
+###--- sustentacular cell lineage DE
+##-- one versus all comparisons
+SLoneVallDE500_2 <- getBestFeatures(slm2, slclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(SLoneVallDE500_2, file.path(DE_dir,"SL_DE_oneVall_limma_500_2.txt"),quote=FALSE,sep="\t")
+SLoneVallDE1000_2 <- getBestFeatures(slm2, slclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(SLoneVallDE1000_2, file.path(DE_dir,"SL_DE_oneVall_limma_1000_2.txt"),quote=FALSE,sep="\t")
+SLoneVallDEall_2 <- getBestFeatures(slm2, slclusters2, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(SLoneVallDEall_2, file.path(DE_dir,"SL_DE_oneVall_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+SLpairsDE500_2 <- getBestFeatures(slm2, slclusters2, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(SLpairsDE500_2, file.path(DE_dir,"SL_DE_Pairs_limma_500_2.txt"),quote=FALSE,sep="\t")
+SLpairsDE1000_2 <- getBestFeatures(slm2, slclusters2, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(SLpairsDE1000_2, file.path(DE_dir,"SL_DE_Pairs_limma_1000_2.txt"),quote=FALSE,sep="\t")
+SLpairsDEall_2 <- getBestFeatures(slm2, slclusters2, contrastType="Pairs",number=Inf, p.value=1)
+write.table(SLpairsDEall_2, file.path(DE_dir,"SL_DE_Pairs_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+SL_DEgenesA2 <- unique(SLoneVallDE500_2$Feature)
+SL_DEgenesB2 <- unique(c(SLoneVallDE500_2$Feature,SLpairsDE500_2$Feature))
+SL_DEgenesC2 <- unique(SLoneVallDE1000_2$Feature)
+SL_DEgenesD2 <- unique(c(SLoneVallDE1000_2$Feature,SLpairsDE1000_2$Feature))
+
+###--- HBC renewal lineage DE
+##-- one versus all comparisons
+HLoneVallDE500_2 <- getBestFeatures(hlm2, hlclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(HLoneVallDE500_2, file.path(DE_dir,"HL_DE_oneVall_limma_500_2.txt"),quote=FALSE,sep="\t")
+HLoneVallDE1000_2 <- getBestFeatures(hlm2, hlclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(HLoneVallDE1000_2, file.path(DE_dir,"HL_DE_oneVall_limma_1000_2.txt"),quote=FALSE,sep="\t")
+HLoneVallDEall_2 <- getBestFeatures(hlm2, hlclusters2, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(HLoneVallDEall_2, file.path(DE_dir,"HL_DE_oneVall_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+HLpairsDE500_2 <- getBestFeatures(hlm2, hlclusters2, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(HLpairsDE500_2, file.path(DE_dir,"HL_DE_Pairs_limma_500_2.txt"),quote=FALSE,sep="\t")
+HLpairsDE1000_2 <- getBestFeatures(hlm2, hlclusters2, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(HLpairsDE1000_2, file.path(DE_dir,"HL_DE_Pairs_limma_1000_2.txt"),quote=FALSE,sep="\t")
+HLpairsDEall_2 <- getBestFeatures(hlm2, hlclusters2, contrastType="Pairs",number=Inf, p.value=1)
+write.table(HLpairsDEall_2, file.path(DE_dir,"HL_DE_Pairs_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+HL_DEgenesA2 <- unique(HLoneVallDE500_2$Feature)
+HL_DEgenesB2 <- unique(c(HLoneVallDE500_2$Feature,HLpairsDE500_2$Feature))
+HL_DEgenesC2 <- unique(HLoneVallDE1000_2$Feature)
+HL_DEgenesD2 <- unique(c(HLoneVallDE1000_2$Feature,HLpairsDE1000_2$Feature))
+
+###--- HBC renewal lineage 2 DE
+##-- pair-wise comparisons
+HL2oneVallDE500_2 <- getBestFeatures(h2lm2, h2lclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(HL2oneVallDE500_2, file.path(DE_dir,"HL2_DE_oneVall_limma_500_2.txt"),quote=FALSE,sep="\t")
+HL2oneVallDE1000_2 <- getBestFeatures(h2lm2, h2lclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(HL2oneVallDE1000_2, file.path(DE_dir,"HL2_DE_oneVall_limma_1000_2.txt"),quote=FALSE,sep="\t")
+HL2oneVallDEall_2 <- getBestFeatures(h2lm2, h2lclusters2, contrastType="OneAgainstAll",number=Inf, p.value=1)
+write.table(HL2oneVallDEall_2, file.path(DE_dir,"HL2_DE_oneVall_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- pair-wise comparisons
+HL2pairsDE500_2 <- getBestFeatures(h2lm2, h2lclusters2, contrastType="Pairs", contrastAdj="All", number=500, p.value=0.05)
+write.table(HL2pairsDE500_2, file.path(DE_dir,"HL2_DE_Pairs_limma_500_2.txt"),quote=FALSE,sep="\t")
+HL2pairsDE1000_2 <- getBestFeatures(h2lm2, h2lclusters2, contrastType="Pairs", contrastAdj="All", number=1000, p.value=0.05)
+write.table(HL2pairsDE1000_2, file.path(DE_dir,"HL2_DE_Pairs_limma_1000_2.txt"),quote=FALSE,sep="\t")
+HL2pairsDEall_2 <- getBestFeatures(h2lm2, h2lclusters2, contrastType="Pairs",number=Inf, p.value=1)
+write.table(HL2pairsDEall_2, file.path(DE_dir,"HL2_DE_Pairs_limma_all_2.txt"),quote=FALSE,sep="\t")
+##-- selecting unique DE genes
+HL2_DEgenesA2 <- unique(HL2oneVallDE500_2$Feature)
+HL2_DEgenesB2 <- unique(c(HL2oneVallDE500_2$Feature,HLpairsDE500_2$Feature))
+HL2_DEgenesC2 <- unique(HL2oneVallDE1000_2$Feature)
+HL2_DEgenesD2 <- unique(c(HL2oneVallDE1000_2$Feature,HLpairsDE1000_2$Feature))
+
+
+###--- saving DE gene matrices and lists
+save(HLoneVallDE500_2, HL2oneVallDE500_2, SLoneVallDE500_2, NLoneVallDE500_2, file=file.path(DE_dir,paste0(esh,"_oneVall500_2DE.Rda")))
+save(HLoneVallDE1000_2, HL2oneVallDE1000_2, SLoneVallDE1000_2, NLoneVallDE1000_2, file=file.path(DE_dir,paste0(esh,"_oneVall1000_2DE.Rda")))
+save(NL_DEgenesD2, NL_DEgenesC2, NL_DEgenesB2, NL_DEgenesA2, SL_DEgenesD2, SL_DEgenesC2, SL_DEgenesB2, SL_DEgenesA2, HL_DEgenesD2, HL_DEgenesC2, HL_DEgenesB2, HL_DEgenesA2, HL2_DEgenesD2, HL2_DEgenesC2, HL2_DEgenesB2, HL2_DEgenesA2, file=file.path(DE_dir, paste0(esh, "DE2geneLists.Rda")))
+
+```
+
+### DE of all WT regeneration samples by cluster
+```{r differentialExpression3}
+oneVallDE500 <- getBestFeatures(Xmat, clus.labels, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(oneVallDE500, file.path(DE_dir,"EWT_oneVallDE_limma_500.txt"),quote=FALSE,sep="\t")
+oneVallDE1000 <- getBestFeatures(Xmat, clus.labels, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
+write.table(oneVallDE1000, file.path(DE_dir,"EWT_oneVallDE_limma_1000.txt"),quote=FALSE,sep="\t")
+save(oneVallDE1000, oneVallDE500, file=file.path(DE_dir, paste0(esh, "_allCellsOneVAllDE.Rda")))
+
+pairsDE500 <- getBestFeatures(Xmat, clus.labels, contrastType="Pairs",contrastAdj="All", number=500, p.value=0.05)
+write.table(pairsDE500, file.path(DE_dir,"EWT_pairwiseDE_limma_500.txt"),quote=FALSE,sep="\t")
+pairsDE1000 <- getBestFeatures(Xmat, clus.labels, contrastType="Pairs",contrastAdj="All", number=1000, p.value=0.05)
+write.table(pairsDE1000, file.path(DE_dir,"EWT_pairwiseDE_limma_1000.txt"),quote=FALSE,sep="\t")
+
+```
+
