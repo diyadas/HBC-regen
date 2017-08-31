@@ -1,0 +1,129 @@
+---
+title: "Plotting Genes Expression along Lineages and Pairs Plots"
+author: "Russell Fletcher"
+date: '`r Sys.Date()`'
+output:
+html_document:
+code_folding: hide
+toc: yes
+toc_float: yes
+fig_width: 10
+fig_height: 10
+---
+
+```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
+knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
+
+library(clusterExperiment)
+library(RColorBrewer)
+library(Rtsne); library(scales); library(ggplot2)
+
+expt_str <- "ExptWT"
+clust_dir <- file.path("../output/clust", expt_str)
+viz_dir <- file.path("../output/viz", expt_str)
+DE_dir <- file.path("../output/DE", expt_str)
+DEG_dir <- file.path("../output/DEG",expt_str)
+esh <- gsub("Expt","E",expt_str)
+
+cc <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
+colpal <- cc[c(1,17,2,29,30,14,9,12,26,13,8)]
+cole <- c(brewer.pal(8, "Blues")[-c(1:2)])
+
+load(file=file.path(clust_dir, paste0(esh, "_lineageData.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_slingshot_out.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_PCA.Rda")))
+#rm(X, X2)
+load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
+load(file=file.path(clust_dir, paste0(esh, "_cmmerged.Rda")))
+
+ccAll <- intersect(unlist(read.table ("../ref/cellCycleAll.txt")),rownames(nlm))
+
+ccn2 <- colpal[-c(3,4,8)] 
+ccs2 <- colpal[-c(2,4,5,7,8,10,11)]
+cch2 <- colpal[-c(2,3,4,5,7,10,11)]
+cc2h2 <- colpal[-c(2,3,5,7,10,11)]
+
+#- devOrder2
+# mat <- transform(cmobjM)
+# mat <- mat[,rownames(X)]
+uiPT <- rep.int(0,60)
+names(uiPT) <- colnames(UIcl1mat)
+NL2devO <- c(uiPT, NLdevO)
+SL2devO <- c(uiPT, SLdevO)
+HL2devO <- c(uiPT, HLdevO)
+
+Xmat <- transform(cmobjM)
+Xmat <- Xmat[,rownames(X)]
+
+```
+
+
+### single Gene Plots in Developmental Order
+```{r singleGenePlotsInDevOrder}
+
+###########################################################
+#####-----function for producing single gene expression plot in developmental order, using log2 transformed counts matrix
+singleGPlot <- function(matrix,geneList,clusters, colorVector,lineage){
+  geneList <- as.character(geneList)
+  for (i in seq_along(geneList)){
+    pdf(file=file.path(viz_dir,"042117",paste0(lineage,"_devOplot-",geneList[i],".pdf")),width=4.5, height=4.5)
+    plot(matrix[geneList[i],],col=colorVector[clusters],xlab=paste0(lineage," Lineage Developmental Order"), ylab="log2 counts" ,main=paste(lineage,"Lineage,", geneList[i], sep=" "), ylim=c(-1, 13), pch=19)
+    #lines(lowess(matrix[geneList[i],],f=0.15,delta=2),lwd=0.5)
+    dev.off()
+  }}
+
+#################
+NLPT <- rep.int(0,353)
+names(NLPT) <- colnames(nlm2)
+plot(NLPT,col=colpal[nlclusters2],xlab=paste0("NL Developmental Order"), ylab="log2 counts", pch=15) 
+SLPT <- rep.int(0,348)
+names(SLPT) <- colnames(slm2)
+plot(SLPT,col=colpal[slclusters2],xlab=paste0("SL Developmental Order"), ylab="log2 counts", pch=15) 
+HLPT <- rep.int(0,341)
+names(HLPT) <- colnames(hlm2)
+plot(HLPT,col=colpal[hlclusters2],xlab=paste0("HL Developmental Order"), ylab="log2 counts", pch=15) 
+
+###---Candidate Gene and/or Marker Lists
+ListToday <- c("Krt16", "Lgals1", "Hopx")
+ListToday <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Il33", "Krt16", "Lgals1", "Hopx")
+
+#####-----Plots
+singleGPlot(nlm2, ListToday, nlclusters2, colpal, "Neuronal2")
+singleGPlot(slm2, ListToday, slclusters2, colpal, "Sus2")
+singleGPlot(hlm2, ListToday, hlclusters2, colpal, "HBC1-2")
+singleGPlot(h2lm2, ListToday, h2lclusters2, colpal, "HBC2-2")
+
+```
+
+
+### Gene Expression Pairs Plots
+```{r genePairsPlots}
+
+#####-----function for producing gene pairs plots of the HBC resting and transition states in SF2 (Trp63, Krt5, Krt14)
+
+HBCmat <- nlm2[,nlclusters2 %in% c("1", "9","6")]
+hbcCl<- droplevels(nlclusters2[colnames(HBCmat)])
+
+cchbc <- colpal[-c(2:5,7,8,10,11)]
+
+select3 <- c("Top2a", "Ccnb1", "Cdk1", "Rrm2")
+select5 <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Krt16", "Lgals1", "Il33", "Hopx")
+
+# pairs(t(HBCmat[select1,]), col=cchbc[hbcCl],pch=19)
+# pairs(t(HBCmat[select2,]), col=cchbc[hbcCl],pch=19)
+# pairs(t(HBCmat[select3,]), col=cchbc[hbcCl],pch=19)
+# pairs(t(HBCmat[select6,]), col=cchbc[hbcCl],pch=19)
+
+genePairsPlot <- function(mat, geneList, clusterVector, colorV, geneListTitle) {
+  geneList <- as.character(geneList)
+  pdf(file=file.path(viz_dir, paste0(esh, "_genePairsPlot_", geneListTitle,".pdf")), width=2*length(geneList), height=2*length(geneList))
+  pairs(t(mat[geneList,]), col=colorV[clusterVector], asp=1, pch=19)
+  dev.off()
+}
+
+genePairsPlot(HBCmat, select3, hbcCl, cchbc, "HBCcellCycle")
+genePairsPlot(HBCmat, select5, hbcCl, cchbc, "HBCact")
+
+```
+
