@@ -25,10 +25,9 @@ scone_out <- get(load(file.path(out_dir, paste0(expt_str,"_scone.Rda")))[1])
 
 load(file.path(out_dir,paste0(expt_str,"_filtdata.Rda")))
 
-lapply(names(scone_all$normalized_data), function(nrm){
-nrmstr = gsub(",","_",gsub("_k=|_","",nrm))
-scone_out = scone_all$normalized_data[[nrm]]
+nrm <- opt$norm
+nrmstr <- gsub(",","_",gsub("_k=|_","",nrm))
+scone_out <- scone_out$normalized_data[[nrm]]
 se <- SummarizedExperiment(list(counts = expm1(scone_out)),
                            colData=data.frame(batch=batch, expt=expt,  nreads=qc$NREADS, ralign=qc$RALIGN, pctmrna=qc$PCT_MRNA_BASES))
 save(se, file = file.path(out_dir,paste0(expt_str,"_",nrmstr,"_se.Rda")))
-})

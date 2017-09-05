@@ -15,7 +15,9 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 expt_str <- opt$expt
-if (!is.null(opt$norm)) params <- get(load(paste0("../output/clust/",expt_str,"_",opt$norm,"_params",".Rda")))
+if (!is.null(opt$norm)) {
+load("../ref/scone_params.Rda")
+params <<- params[opt$norm, ]}
 
 register(MulticoreParam(workers = opt$ncores))
 
@@ -37,11 +39,12 @@ hk100 <- intersect(rownames(counts), unlist(hk100))
 if (is.null(opt$norm)) {
   print(system.time({
     scone_out <- scone(counts, imputation=list(none=impute_null), impute_args=list(0), return_norm = 'no', scaling=list(none=identity, fq=FQT_FN, tmm=TMM_FN), k_ruv=1, k_qc=1, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch, run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
-  }))
+save(scone_out, file = file.path(out_dir,paste0(expt_str,"_scone_eval.Rda"))) 
+ }))
 } else {
   print(system.time({
     scone_out <- scone(counts, return_norm = 'in_memory',params = params, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch, run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
+save(scone_out, file = file.path(out_dir,paste0(expt_str,"_scone.Rda")))
   }))
 }
 
-save(scone_out, file = file.path(out_dir,paste0(expt_str,"_scone.Rda")))
