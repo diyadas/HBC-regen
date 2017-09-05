@@ -10,7 +10,7 @@ library(optparse)
 option_list <- list(
   make_option("--expt", default="", type="character", help="full form, e.g. oeHBC"),
   make_option("--ncores", default="1", type="double"),
-  make_option("--norm", default="NULL", type="character")
+  make_option("--norm", default=NULL, type="character")
 )
 
 opt <- parse_args(OptionParser(option_list=option_list))
