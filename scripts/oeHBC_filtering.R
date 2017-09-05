@@ -95,8 +95,6 @@ message(paste("Dimensions after dropping undetected transcripts:", dim(eSet)[1],
 thresh_fail <- 40  # Tophat counts
 num_fail <- 5  # cells
 
-hk=intersect(unlist(read.table("../ref/hklist.txt")),rownames(ct))
-
 # Initial Gene Filtering
 init.gf.vec <- rowSums(ct > thresh_fail) > num_fail
 
