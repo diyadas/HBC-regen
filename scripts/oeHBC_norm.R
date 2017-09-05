@@ -36,11 +36,11 @@ hk100 <- intersect(rownames(counts), unlist(hk100))
 # Generate Scores and Ranking
 if (is.null(opt$norm)) {
   print(system.time({
-    scone_out <- scone(counts, imputation=list(none=impute_null), impute_args=list(0), return_norm = 'in_memory', scaling=list(none=identity, fq=FQT_FN, tmm=TMM_FN), k_ruv=3, k_qc=3, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch,run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
+    scone_out <- scone(counts, imputation=list(none=impute_null), impute_args=list(0), return_norm = 'no', scaling=list(none=identity, fq=FQT_FN, tmm=TMM_FN), k_ruv=1, k_qc=1, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch, run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
   }))
 } else {
   print(system.time({
-    scone_out <- scone(counts, return_norm = 'in_memory',params = params, scaling=list(none=identity, fq=FQT_FN, tmm=TMM_FN), k_ruv=3, k_qc=3, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch,run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
+    scone_out <- scone(counts, return_norm = 'in_memory',params = params, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch, run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
   }))
 }
 
