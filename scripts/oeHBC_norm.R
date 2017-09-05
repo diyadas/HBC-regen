@@ -15,7 +15,7 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 expt_str <- opt$expt
-if (!is.null(opt$norm)) params <- get(load(paste0("../output/clust/",esh,"_",opt$norm,"_params",".Rda")))
+if (!is.null(opt$norm)) params <- get(load(paste0("../output/clust/",expt_str,"_",opt$norm,"_params",".Rda")))
 
 register(MulticoreParam(workers = opt$ncores))
 
