@@ -20,7 +20,7 @@ expt_str <- opt$expt
 
 register(MulticoreParam(workers = opt$ncores))
 
-out_dir <- paste0("~/normscone/output/clust/",expt_str)
+out_dir <- paste0("../output/clust/",expt_str)
 scone_out <- get(load(file.path(out_dir, paste0(expt_str,"_scone.Rda")))[1])
 
 load(file.path(out_dir,paste0(expt_str,"_filtdata.Rda")))
