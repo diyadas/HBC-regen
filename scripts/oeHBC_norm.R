@@ -19,6 +19,8 @@ if (!is.null(opt$norm)) {
 load("../ref/scone_params.Rda")
 params <<- params[opt$norm, ]}
 
+print(params)
+
 register(MulticoreParam(workers = opt$ncores))
 
 out_dir <- paste0("../output/clust/",expt_str)
@@ -43,8 +45,8 @@ save(scone_out, file = file.path(out_dir,paste0(expt_str,"_scone_eval.Rda")))
  }))
 } else {
   print(system.time({
-    scone_out <- scone(counts, return_norm = 'in_memory',params = params, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch, run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
-save(scone_out, file = file.path(out_dir,paste0(expt_str,"_scone.Rda")))
+    scone_out <- scone(counts, return_norm = 'in_memory', params = params, imputation=list(none=impute_null),impute_args=list(0), scaling=list(none=identity, fq=FQT_FN, tmm=TMM_FN), k_ruv=1, k_qc=1, ruv_negcon=hk615, qc=as.matrix(qc), adjust_bio="yes", bio=expt, adjust_batch="yes", batch=batch, run=TRUE, evaluate=TRUE, eval_negcon=hk100, eval_poscon=del, eval_kclust = 10:12)
+save(scone_out, file = file.path(out_dir,paste0(expt_str,"_", opt$norm, "_scone.Rda")))
   }))
 }
 
