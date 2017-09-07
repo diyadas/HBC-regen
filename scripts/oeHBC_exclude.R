@@ -7,9 +7,9 @@ out_dir <- "../output/clust/oeHBC"
 
 normfiles=list.files(path = out_dir, pattern=glob2rx("oeHBC_*_se.Rda"))
 
-reg3g_list_all = NULL
-omp_cyp_list_all = NULL
-csf1r_eGFP_list_all = NULL
+reg3g_list_all = list()
+omp_cyp_list_all = list()
+csf1r_eGFP_list_all = list()
 
 lapply(normfiles, function(sefile){
 norm <- limma::removeExt(sefile) 
@@ -28,9 +28,9 @@ reg3g_list <- colnames(counts[,grep("UI|SOX2EGFP",expt)])[counts["Reg3g",grep("U
 
 save(reg3g_list,omp_cyp_list, csf1r_eGFP_list,file=file.path("../ref",paste0(norm,"_exclude.Rda")))
 
-rm(list=setdiff(ls(), c('out_dir','normfiles')))
+#rm(list=setdiff(ls(), c('out_dir','normfiles')))
 reg3g_list_all <<- union(reg3g_list_all,reg3g_list)
 omp_cyp_list_all <<- union(omp_cyp_list_all, omp_cyp_list)
 csf1r_eGFP_list_all <<- union(csf1r_eGFP_list_all, csf1r_eGFP_list)
 })
-save(reg3g_list_all, omp_cyp_list_all, csf1r_eGFP_list_all, file=file.path(out_dir, "oeHBC_combined_exclude.Rda"))
+save(reg3g_list_all, omp_cyp_list_all, csf1r_eGFP_list_all, file=file.path("../ref","oeHBC_combined_exclude.Rda"))

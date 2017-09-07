@@ -10,7 +10,7 @@ library(optparse)
 
 option_list <- list(
   make_option("--expt", default="", type="character", help="full form, e.g. oeHBC"),
-  make_option("--norm", default=NULL, type="character", help="normalization for excluded samples, if given")
+  make_option("--exclude", default=NULL, type="character", help="name for excluded samples, if given")
 )
 
 opt <- parse_args(OptionParser(option_list=option_list))
@@ -29,8 +29,8 @@ eSet <- Cufflinks_eSet
 ### 2. second run, run with populated excluded_samples_list
 
 excluded_samples_list <- NULL
-if (!is.null(opt$norm)){
-  excluded_samples_list <<- load(paste0("../ref/",expt_str,"_",opt$norm,"_exclude.Rda"))
+if (!is.null(opt$exclude)){
+  excluded_samples_list <<- load(paste0("../ref/",expt_str,"_",opt$exclude,"_exclude.Rda"))
   message("using sample to exclude list")
 }
 

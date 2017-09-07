@@ -16,8 +16,9 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list))
 expt_str <- opt$expt
 if (!is.null(opt$norm)) {
-load("../ref/scone_params.Rda")
-params <<- params[opt$norm, ]}
+   load("../ref/scone_params.Rda")
+   params <<- params[opt$norm, ]
+}
 
 print(params)
 
