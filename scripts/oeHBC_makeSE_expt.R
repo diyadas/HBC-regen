@@ -8,19 +8,32 @@ library(BiocParallel)
 library(optparse)
 library(SummarizedExperiment)
 
+option_list <- list(
+  make_option("--expt", default="", type="character", help="full form, e.g. Expt1"),
+  make_option("--ncores", default="1", type="double"),
+  make_option("--norm", type="character")
+)
+
+
+opt <- parse_args(OptionParser(option_list=option_list))
+expt_str <- opt$expt
+register(MulticoreParam(workers = opt$ncores))
+out_dir <- paste0("../output/clust/",expt_str)
+seed=927501
+norm <- opt$norm
+
+
 ####----load post filtering Rda to get expt, batch, QC
-load(paste0("../output/clust/oeHBC/oeHBC_filtdata.Rda"))
+load(file.path(out_dir,paste0(expt_str,"_filtdata.Rda")))
 names(batch) <- names(expt) <-rownames(qc)
 
 ####----load scone output (normalized data matrix) Rda
-load(paste0("../output/clust/oeHBC/oeHBC_scone.Rda"))
+load(file.path(out_dir,paste0(expt_str,"_",norm,"_scone.Rda")))
 
 expt_list <- c("oeHBCregenWT","oeHBCregenWTKO","oeHBCdiffregen")
 
-lapply(names(scone_out$normalized_data), function(nrm){
-nrmstr = gsub(",","_",gsub("_k=|_","",nrm))
-
-counts_all <- scone_out$normalized_data[[nrm]]
+normstr <- gsub(",","_",gsub("_k=|_","",norm))
+counts_all <- scone_out$normalized_data[[norm]]
 
 lapply(expt_list, function (expt_str) {
 if (expt_str == "oeHBCregenWTKO") {
@@ -35,10 +48,8 @@ if (expt_str == "oeHBCregenWTKO") {
 
 counts <- counts_all[, desiredSamples]
 out_dir <- paste0("../output/clust/",expt_str)
-esh <- paste0("E",substr(expt_str,5,nchar(expt_str)))
+
 se <- SummarizedExperiment(list(counts = expm1(counts)),
                            colData=data.frame(batch=batch[colnames(counts)], expt=expt[colnames(counts)],  nreads=qc[colnames(counts),]$NREADS, ralign=qc[colnames(counts),]$RALIGN, pctmrna=qc[colnames(counts),]$PCT_MRNA_BASES))
-save(se, file = file.path(out_dir,paste0(esh,"_",nrmstr,"_se.Rda")))
-})
-
+save(se, file = file.path(out_dir,paste0(expt_str,"_",normstr,"_se.Rda")))
 })
