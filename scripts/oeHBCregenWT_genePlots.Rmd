@@ -42,11 +42,7 @@ ccAll <- intersect(unlist(read.table ("../ref/cellCycleAll.txt")),rownames(nlm))
 ccn2 <- colpal[-c(3,4,8)] 
 ccs2 <- colpal[-c(2,4,5,7,8,10,11)]
 cch2 <- colpal[-c(2,3,4,5,7,10,11)]
-cc2h2 <- colpal[-c(2,3,5,7,10,11)]
 
-#- devOrder2
-# mat <- transform(cmobjM)
-# mat <- mat[,rownames(X)]
 uiPT <- rep.int(0,60)
 names(uiPT) <- colnames(UIcl1mat)
 NL2devO <- c(uiPT, NLdevO)
@@ -59,7 +55,7 @@ Xmat <- Xmat[,rownames(X)]
 ```
 
 
-### single Gene Plots in Developmental Order
+### Single Gene Expression Plots in Developmental Order
 ```{r singleGenePlotsInDevOrder}
 
 ###########################################################
@@ -73,7 +69,7 @@ singleGPlot <- function(matrix,geneList,clusters, colorVector,lineage){
     dev.off()
   }}
 
-#################
+######-----Figure 3A: developmental order line plots for each lineage
 NLPT <- rep.int(0,353)
 names(NLPT) <- colnames(nlm2)
 plot(NLPT,col=colpal[nlclusters2],xlab=paste0("NL Developmental Order"), ylab="log2 counts", pch=15) 
@@ -85,45 +81,17 @@ names(HLPT) <- colnames(hlm2)
 plot(HLPT,col=colpal[hlclusters2],xlab=paste0("HL Developmental Order"), ylab="log2 counts", pch=15) 
 
 ###---Candidate Gene and/or Marker Lists
-ListToday <- c("Krt16", "Lgals1", "Hopx")
-ListToday <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Il33", "Krt16", "Lgals1", "Hopx")
+ListFigureS4C <- c("Krt16", "Lgals1", "Hopx")
+ListFigure3B <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Il33")
 
-#####-----Plots
-singleGPlot(nlm2, ListToday, nlclusters2, colpal, "Neuronal2")
-singleGPlot(slm2, ListToday, slclusters2, colpal, "Sus2")
-singleGPlot(hlm2, ListToday, hlclusters2, colpal, "HBC1-2")
-singleGPlot(h2lm2, ListToday, h2lclusters2, colpal, "HBC2-2")
+#####-----Figure 3B Gene expression plots
+singleGPlot(nlm2, ListFigure3B, nlclusters2, colpal, "Neuronal2")
+singleGPlot(slm2, ListFigure3B, slclusters2, colpal, "Sus2")
+singleGPlot(hlm2, ListFigure3B, hlclusters2, colpal, "HBC1-2")
 
-```
-
-
-### Gene Expression Pairs Plots
-```{r genePairsPlots}
-
-#####-----function for producing gene pairs plots of the HBC resting and transition states in SF2 (Trp63, Krt5, Krt14)
-
-HBCmat <- nlm2[,nlclusters2 %in% c("1", "9","6")]
-hbcCl<- droplevels(nlclusters2[colnames(HBCmat)])
-
-cchbc <- colpal[-c(2:5,7,8,10,11)]
-
-select3 <- c("Top2a", "Ccnb1", "Cdk1", "Rrm2")
-select5 <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Krt16", "Lgals1", "Il33", "Hopx")
-
-# pairs(t(HBCmat[select1,]), col=cchbc[hbcCl],pch=19)
-# pairs(t(HBCmat[select2,]), col=cchbc[hbcCl],pch=19)
-# pairs(t(HBCmat[select3,]), col=cchbc[hbcCl],pch=19)
-# pairs(t(HBCmat[select6,]), col=cchbc[hbcCl],pch=19)
-
-genePairsPlot <- function(mat, geneList, clusterVector, colorV, geneListTitle) {
-  geneList <- as.character(geneList)
-  pdf(file=file.path(viz_dir, paste0(esh, "_genePairsPlot_", geneListTitle,".pdf")), width=2*length(geneList), height=2*length(geneList))
-  pairs(t(mat[geneList,]), col=colorV[clusterVector], asp=1, pch=19)
-  dev.off()
-}
-
-genePairsPlot(HBCmat, select3, hbcCl, cchbc, "HBCcellCycle")
-genePairsPlot(HBCmat, select5, hbcCl, cchbc, "HBCact")
+#####-----Figure S4C Gene expression plots
+singleGPlot(nlm2, ListFigureS4C, nlclusters2, colpal, "Neuronal2")
+singleGPlot(slm2, ListFigureS4C, slclusters2, colpal, "Sus2")
+singleGPlot(hlm2, ListFigureS4C, hlclusters2, colpal, "HBC1-2")
 
 ```
-
