@@ -1,5 +1,5 @@
 ---
-title: "wtRegen preparing gene sets"
+title: "Preparing gene sets for GSEA on oeHBCregenWT data"
 author: "Davide Risso and Russell Fletcher"
 date: '`r Sys.Date()`'
 output:
@@ -24,14 +24,14 @@ library(parallel)
 
 expt_str <- "ExptWT"
 
-out_dir = file.path("../output/clust", expt_str)
+clust_dir = file.path("../output/clust", expt_str)
+DE_dir <- file.path("../output/DE", expt_str)
 
-load(file.path(out_dir, paste0(EWT_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
+load(file.path(clust_dir, paste0("EWT_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
 
 ##--remove Fabp5+ cluster from the clusterExperiment object, leaving only the clusters used in the lineage analysis by slingshot
 cmobj2M <- cmobjM[,!(primaryClusterNamed(cmobjM) %in% c("-1", "m10"))]
-cmobj2O <- cm3[,!(primaryClusterNamed(cm3) %in% c("-1", "c16"))]
-save(cmobj2M, cmobj2O, file=file.path(out_dir, paste0(expt_str,"_finalClusterObject_113016.Rda")))
+save(cmobj2M, file=file.path(DE_dir, paste0(expt_str,"_finalClusterObject.Rda")))
 
 printf <- function(...) cat(sprintf(...))
 
@@ -67,6 +67,6 @@ msigdbSetsGenes=lapply(selectedGeneSets, function(s) na.omit(unique(bm[bm[,2] %i
 msigdbSets = list(genes=msigdbSetsGenes, idx=geneSets_idx, description="MSigDB")
 
 save(file="../ref/MSigDB/selectedGeneSets.Rdata", msigdbSets, bm)
-save(msigdbSets, bm, file=file.path(out_dir, "MSigDBselectedGeneSets.Rdata"))
+save(msigdbSets, bm, file=file.path(DE_dir, "MSigDBselectedGeneSets.Rdata"))
 
 ```
