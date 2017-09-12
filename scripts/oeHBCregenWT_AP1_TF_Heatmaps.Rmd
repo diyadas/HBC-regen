@@ -21,29 +21,21 @@ NMF::nmf.options(grid.patch=TRUE)##put anywhere in the script to remove first (b
 expt_str <- "ExptWT"
 esh <- gsub("Expt","E",expt_str)
 clust_dir <- file.path("../output/clust", expt_str)
-# DE_dir <- file.path("../output/DE", expt_str)
-# DEG_dir <- file.path("../output/DEG",expt_str)
-viz_dir <- file.path("../output/viz", expt_str, "geneSetHeatmaps")
 viz_dir <- file.path("../output/viz", expt_str)
 
-load(file=file.path(clust_dir, paste0(esh, "_PCA.Rda")))
-rm(X, X2)
 load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
 
-ccn2 <- col.pal[-c(3,4,8)] 
-ccs2 <- col.pal[-c(2,4,5,7,8,10,11)]
+cc <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
+colpal <- cc[c(1,17,2,29,30,14,9,12,26,13,8)]
+ccn2 <- colpal[-c(3,4,8)] 
+ccs2 <- colpal[-c(2,4,5,7,8,10,11)]
 # cch2 <- col.pal[-c(2,3,5,7,10,11)]
 
 ```
 
-```{r geneSetHeatmap}
+```{r AP1_TF_Heatmap}
 breakw <- c(min(nlm2), seq(0, quantile(nlm2[nlm2 > 0], .99, na.rm = TRUE), length = 50), max(nlm2))
 
-upr <- intersect(read.table("../ref/uprG.txt")$V1, rownames(nlm2))
-pdf(file=file.path(viz_dir, paste0(expt_str, "_NL_selectUPRgenes.pdf")), height=8.5, width=11)
-plotHeatmap(nlm2[upr,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=nlclusters2), clusterLegend=list(clusters=ccn2), main=paste("NL_selectUPRgenes"))
-dev.off()
 
 ap1 <- intersect(read.table("../ref/genesAP1.txt")$V1, rownames(nlm2))
 pdf(file=file.path(viz_dir, paste0(expt_str, "_NL_AP1genes.pdf")), height=8.5, width=11)
