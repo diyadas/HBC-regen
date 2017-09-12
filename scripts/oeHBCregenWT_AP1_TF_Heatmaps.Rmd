@@ -18,12 +18,11 @@ library(clusterExperiment)
 library(RColorBrewer)
 NMF::nmf.options(grid.patch=TRUE)##put anywhere in the script to remove first (blank) page of heatmap pdfs
 
-expt_str <- "ExptWT"
-esh <- gsub("Expt","E",expt_str)
+expt_str <- "oeHBCregenWT"
 clust_dir <- file.path("../output/clust", expt_str)
 viz_dir <- file.path("../output/viz", expt_str)
 
-load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
+load(file=file.path(clust_dir, paste0(expt_str, "_lineageData2.Rda")))
 
 cc <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
 colpal <- cc[c(1,17,2,29,30,14,9,12,26,13,8)]
