@@ -35,12 +35,23 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 4. Re-normalization after removal of contaminants (`oeHBCregen_norm.R`)
 5. Create SummarizedExperiment object for each experiment (`oeHBCregen_makeSE_expt.R`)
 
-### Clustering, Developmental Ordering, Differential Expression
-`oeHBCregen_3_renorm_clust_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
-8. Clustering using clusterExperiment (`oeHBCregen_clust.R`)
+`oeHBC_4_clust.sh` performs the following:
+### Clustering
+6. Cluster samples in each experiment (`oeHBC_clust.R`)
+
+
+
+--- updated to this point ---
+
+
+### Clustering, Developmental Ordering, Differential Expression
+`oeHBCregen_4b_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
+
 8. Developmental ordering with slingshot (`oeHBCregenWT_slingshot.Rmd` & `oeHBCregenWTKO_slingshot.Rmd`)
-9. Differential gene expression using limma, along each lineage (`oeHBCregenWT_de.Rmd`)
+9. Differential gene expression using limma, along each lineage (`oeHBCregenWT_DE.Rmd`)
+
+`oeHBCregenWT_5_GSEA.sh`:
 11. Preparation of gene sets for Gene Set Enrichment Analysis (GSEA; `oeHBCregenWT_GSEAprep.Rmd`)
 11. GSEA based on cell clustering using limma romer (`oeHBCregenWT_romerGSEA.R`)
 

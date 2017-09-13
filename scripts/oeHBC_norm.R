@@ -18,9 +18,8 @@ expt_str <- opt$expt
 if (!is.null(opt$norm)) {
    load("../ref/scone_params.Rda")
    params <<- params[opt$norm, ]
+   print(params)
 }
-
-print(params)
 
 register(MulticoreParam(workers = opt$ncores))
 
