@@ -1,5 +1,5 @@
 ---
-title: "Plotting Genes Expression along Lineages and Pairs Plots"
+title: "Plotting Genes Expression along Lineages"
 author: "Russell Fletcher"
 date: '`r Sys.Date()`'
 output:
