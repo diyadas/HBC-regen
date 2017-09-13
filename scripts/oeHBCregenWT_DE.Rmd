@@ -1,6 +1,6 @@
 ---
 title: "Wild Type Regeneration, Differential Expression"
-author: "Russell Fletcher"
+author: "Russell Fletcher and Diya Das"
 date: '`r Sys.Date()`'
 output:
 html_document:
@@ -25,12 +25,10 @@ library(clusterExperiment); library(limma)
 ### loading wt regeneration data
 ```{r loadingData}
 
-load(file=file.path(clust_dir, paste0(expt_str, "_PCA.Rda")))
-load(file=file.path(clust_dir, paste0(expt_str, "_lineageData2.Rda")))
-load(file=file.path(clust_dir, paste0(expt_str, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
+load(file=file.path(clust_dir, paste0(expt_str, "_lineageData.Rda")))
+load(file=file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
 
-Xmat <- transform(cmobjM)
-Xmat <- Xmat[,rownames(X)]
+Xmat <- transform(cmobj)
 
 ```
 
@@ -39,53 +37,30 @@ Xmat <- Xmat[,rownames(X)]
 
 ###--- neuronal lineage DE
 ##-- one versus all comparisons
-NLoneVallDE500 <- getBestFeatures(nlm2, nlclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
-write.table(NLoneVallDE500, file.path(DE_dir,"NL_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+NLoneVallDE500 <- getBestFeatures(nlm, nlclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(NLoneVallDE500, file.path(DE_dir,"NL_DE_oneVall_500.txt"),quote=FALSE,sep="\t")
 
 ###--- sustentacular cell lineage DE
 ##-- one versus all comparisons
-SLoneVallDE500 <- getBestFeatures(slm2, slclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
-write.table(SLoneVallDE500, file.path(DE_dir,"SL_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+SLoneVallDE500 <- getBestFeatures(slm, slclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(SLoneVallDE500, file.path(DE_dir,"SL_DE_oneVall_500.txt"),quote=FALSE,sep="\t")
 
 
 ###--- HBC renewal lineage DE
 ##-- one versus all comparisons
-HLoneVallDE500 <- getBestFeatures(hlm2, hlclusters2, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
-write.table(HLoneVallDE500, file.path(DE_dir,"HL_DE_oneVall_limma_500.txt"),quote=FALSE,sep="\t")
+HLoneVallDE500 <- getBestFeatures(hlm, hlclusters, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
+write.table(HLoneVallDE500, file.path(DE_dir,"HL_DE_oneVall_500.txt"),quote=FALSE,sep="\t")
 
-#####
-##-- pairwise comparisons
-NLpairwise1000 <- getBestFeatures(nlm2, nlclusters2, contrastType="Pairs",contrastAdj="All", number=1000, p.value=0.05)
-write.table(NLoneVallDE500_2, file.path(DE_dir,"NL_DE_pairwise_limma_1000.txt"),quote=FALSE,sep="\t")
-
-###--- sustentacular cell lineage DE
-##-- pairwise comparisons
-SLpairwiseDE1000 <- getBestFeatures(slm2, slclusters2, contrastType="Pairs",contrastAdj="All", number=1000, p.value=0.05)
-write.table(SLoneVallDE500_2, file.path(DE_dir,"SL_DE_pairwise_limma_1000.txt"),quote=FALSE,sep="\t")
-
-
-###--- HBC renewal lineage DE
-##-- pairwise comparisons
-HLpairwiseDE1000 <- getBestFeatures(hlm2, hlclusters2, contrastType="Pairs",contrastAdj="All", number=1000, p.value=0.05)
-write.table(HLoneVallDE500_2, file.path(DE_dir,"HL_DE_pairwise_limma_1000.txt"),quote=FALSE,sep="\t")
-
-###--- saving DE gene matrices and lists
-save(HLoneVallDE500, SLoneVallDE500, NLoneVallDE500, file=file.path(DE_dir,paste0(expt_str,"_oneVall500_DE.Rda")))
-save(HLpairwiseDE1000, SLpairwiseDE1000, NLpairwiseDE1000, file=file.path(DE_dir,paste0(expt_str,"_pairwise1000_DE.Rda")))
 ```
 
 ### DE of all WT regeneration samples by cluster
 ```{r differentialExpression3}
-oneVallDE500 <- getBestFeatures(Xmat, clus.labels, contrastType="OneAgainstAll",contrastAdj="All", number=500, p.value=0.05)
-write.table(oneVallDE500, file.path(DE_dir,"EWT_oneVallDE_limma_500.txt"),quote=FALSE,sep="\t")
-oneVallDE1000 <- getBestFeatures(Xmat, clus.labels, contrastType="OneAgainstAll",contrastAdj="All", number=1000, p.value=0.05)
-write.table(oneVallDE1000, file.path(DE_dir,"EWT_oneVallDE_limma_1000.txt"),quote=FALSE,sep="\t")
-save(oneVallDE1000, oneVallDE500, file=file.path(DE_dir, paste0(expt_str, "_allCellsOneVAllDE.Rda")))
 
-pairsDE500 <- getBestFeatures(Xmat, clus.labels, contrastType="Pairs",contrastAdj="All", number=500, p.value=0.05)
-write.table(pairsDE500, file.path(DE_dir,"EWT_pairwiseDE_limma_500.txt"),quote=FALSE,sep="\t")
-pairsDE1000 <- getBestFeatures(Xmat, clus.labels, contrastType="Pairs",contrastAdj="All", number=1000, p.value=0.05)
-write.table(pairsDE1000, file.path(DE_dir,"EWT_pairwiseDE_limma_1000.txt"),quote=FALSE,sep="\t")
+oneVallDE <- getBestFeatures(Xmat, clus.labels, contrastType="OneAgainstAll",contrastAdj="All", number=Inf, p.value=0.05)
+write.table(oneVallDE, file.path(DE_dir,"oeHBCregenWT_oneVallDE.txt"),quote=FALSE,sep="\t")
+
+pairsDE <- getBestFeatures(Xmat, clus.labels, contrastType="Pairs",contrastAdj="All", number=Inf, p.value=0.05)
+write.table(pairsDE, file.path(DE_dir,"oeHBCregenWT_pairwiseDE.txt"),quote=FALSE,sep="\t")
 
 ```
 
