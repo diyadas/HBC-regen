@@ -1,0 +1,212 @@
+---
+title: "Analysis of steady state differentiation and regeneration"
+author: "Diya Das"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float: yes
+    fig_width: 10
+    fig_height: 10
+---
+
+```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
+knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
+
+library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl); library(rglwidget); library(R.utils); library(Rtsne); library(scales); library(ggplot2);
+library(limma)
+library(edgeR)
+library(calibrate)
+NMF::nmf.options(grid.patch=TRUE)
+
+expt_str <- "oeHBCdiffregen"
+clust_dir <- file.path("../output/clust", expt_str)
+viz_dir <- file.path("../output/viz", expt_str)
+DE_dir <- file.path("../output/DE", expt_str)
+
+col.pal <- c("gray95", "cornflowerblue", "#CCCCCC", "#FCCDE5", "darkolivegreen3", "#1B9E77", "#E6AB02", "#A6CEE3")
+cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(5, "Reds"), brewer.pal(12, "Paired")[10])
+col.src <- cole[c(1,11,6)]
+```
+
+```{r loading}
+oeHBCdiff_dir = "../output/clust/oeHBCdiff"
+clus.labels_diff <- loadToEnv(file.path(oeHBCdiff_dir, paste0("oeHBCdiff_PCA.Rda")))[["clus.labels"]]
+oeHBC_col.pal_diff <- c("grey95", loadToEnv(file.path(oeHBCdiff_dir, paste0("oeHBCdiff_PCA.Rda")))[["col.pal"]])
+
+HBCdiffnames <- names(clus.labels_diff)[clus.labels_diff %in% c(1,8,5)]
+
+regen_dir <- "../output/clust/oeHBCregenWT"
+clus.labels_regen <- loadToEnv(file.path(regen_dir, paste0("oeHBCregenWT_PCA.Rda")))[["clus.labels"]]
+oeHBC_col.pal_regen <- c("grey95", loadToEnv(file.path(regen_dir, paste0("oeHBCregenWT_PCA.Rda")))[["col.pal"]])
+
+load("../ref/oeHBCregenWT_exclude_lowqc.Rda")
+
+HBCregennames <- names(clus.labels_regen)[clus.labels_regen %in% c(9,6,8,4,1)]
+
+# load combined data and exclude low quality cells
+cmobj <- get(load(file.path(clust_dir, paste0(expt_str,"_none_fq_ruv1_nobio_nobatch_hier_2.Rda"))))
+cmobj <- cmobj[,!(colnames(cmobj) %in% exclude_wtlowqc)]
+
+oeHBC_clus.labels <- rep(0, ncol(cmobj)); names(oeHBC_clus.labels) <- colnames(cmobj)
+oeHBC_clus.labels[HBCregennames] <- clus.labels_regen[HBCregennames]
+
+oeHBC_clus.labels[oeHBC_clus.labels==9] <- "actHBC1"
+oeHBC_clus.labels[oeHBC_clus.labels==6] <- "actHBC2"
+oeHBC_clus.labels[oeHBC_clus.labels==8] <- "renewHBC1"
+oeHBC_clus.labels[oeHBC_clus.labels==4] <- "renewHBC2"
+oeHBC_clus.labels[oeHBC_clus.labels==1] <- "rest/renewedHBC"
+
+to_assign <- intersect(names(oeHBC_clus.labels)[oeHBC_clus.labels==0], HBCdiffnames)
+oeHBC_clus.labels[to_assign] <- clus.labels_diff[to_assign]
+
+oeHBC_clus.labels[oeHBC_clus.labels==1] <- "rest/renewedHBC"
+oeHBC_clus.labels[oeHBC_clus.labels==7] <- "transHBC1"
+oeHBC_clus.labels[oeHBC_clus.labels==5] <- "transHBC2"
+
+oeHBC_clus.labels_diff <- oeHBC_clus.labels
+oeHBC_clus.labels_diff[oeHBC_clus.labels_diff %in% c("actHBC1","actHBC2", "renewHBC1", "renewHBC2")] <- 0
+
+oeHBC_clus.labels_regen <- oeHBC_clus.labels
+oeHBC_clus.labels_regen[oeHBC_clus.labels_regen %in% c("transHBC1","transHBC2")] <- 0
+
+oeHBC_clus.labels_regen <- rep(0, ncol(cmobj)); names(oeHBC_clus.labels_regen) <- colnames(cmobj)
+oeHBC_clus.labels_regen[names(clus.labels_regen)] <- clus.labels_regen
+oeHBC_clus.labels_regen <- factor(oeHBC_clus.labels_regen) 
+
+save(cmobj, oeHBC_clus.labels, file=file.path(clust_dir, paste0(esh, "_cmmerged.Rda")))
+
+```
+
+### t-SNE
+```{r tsne}
+rtsne_fx <- function(cmobj, clusters,ngenes=500, perplexity=perplexity, max_iter=max_iter) {
+  set.seed(9887)
+  vars <- apply(transform(cmobj)[,names(clusters)], 1, var)
+  vars <- sort(vars, decreasing=TRUE)
+  var_data <- transform(cmobj)[names(vars)[1:ngenes],]
+  tsne_data <- Rtsne(t(var_data[,names(clusters)]), perplexity = perplexity, max_iter = max_iter)
+  return(tsne_data)
+}
+
+oeHBC_clus.labels <- E5_hbc_clus.labels
+iter <- 1000
+perplexity <- 20
+tsne_data <- rtsne_fx(cmobj,oeHBC_clus.labels,ngenes=nrow(cmobj), perplexity = perplexity, max_iter = iter)
+
+```
+#### t-SNE by cluster
+```{r tsne-clus}
+svg(file.path(viz_dir,paste0("oeHBC_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+plot(tsne_data$Y, col=col.pal[oeHBC_clus.labels], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
+points(tsne_data$Y[oeHBC_clus.labels!=0,], col=col.pal[oeHBC_clus.labels[oeHBC_clus.labels!=0]], pch=19, cex=0.5)
+dev.off()
+
+```
+#### t-SNE by experimental condition
+```{r tsne-expt}
+src.label <- rep(0, ncol(cmobj)); names(src.label) <- colnames(cmobj)
+src.label[grep("K5ERRY_UI|PI", expt)] <- "Regen"
+src.label[grep("UI|SOX2EGFP",expt)] <- "Diff"
+src.label[expt=="K5ERRY_UI"] <- "Both"
+src.label <- factor(src.label, levels=c("Both","Diff","Regen"))
+
+## SF3B
+svg(file.path(viz_dir,paste0("oeHBC_source_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+plot(tsne_data$Y, col=alpha(col.src,0.5)[src.label],cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="", pch=19)
+dev.off()
+
+expt <- cmobj@colData$expt
+col.pal_regen <- c(cole[1:6], rep("grey95", 6))
+col.pal_diff <- c(cole[1], rep("grey95", 5), cole[7:12])
+
+svg(file.path(viz_dir,paste0("oeHBC_regen_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+plot(tsne_data$Y, col=col.pal_regen[expt[colnames(cmobj)]], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
+points(tsne_data$Y[grepl("K5ERRY",expt),], col=col.pal_regen[expt][grepl("K5ERRY",expt)], pch=19, cex=0.5)
+dev.off()
+
+svg(file.path(viz_dir,paste0("oeHBC_diff_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+plot(tsne_data$Y, col=col.pal_diff[expt], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
+points(tsne_data$Y[!grepl("PI",expt),], col=col.pal_diff[expt][!grepl("PI",expt)], pch=19, cex=0.5)
+dev.off()
+```
+
+```{r tsne-geneset}
+t1 <- theme(plot.background=element_blank(), panel.grid.minor=element_blank(), panel.background=element_blank(),axis.ticks=element_blank(), legend.title=element_blank(), legend.background=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),legend.key= element_rect(fill="white"), panel.border = element_rect(fill=NA,colour = "black"),axis.line=element_blank(),aspect.ratio=1)
+t2 <- theme(axis.title.x=element_blank(), axis.title.y=element_blank(),  plot.title=element_blank()) 
+
+CC40 <- read.table("~/gitp/oe-scrnaseq/ref/cellCycle40.txt")$V1
+UPR <- unlist(read.table("~/normscone/ref/HM_UPR.txt"))
+WR8 <- c("Krt6a", "Krt16","Dmkn", "Sbsn", "Sprr1a","Krtdap","Sprr2a3","Hbegf")
+Hopx <- "Hopx"
+
+plotscaledtsne <- function(glist) {
+scaled <- t(scale(t(transform(cmobj)[intersect(glist, rownames(cmobj)),])))
+z <- colMeans(scaled)
+dat <- data.frame(x = tsne_data$Y[,1], y = tsne_data$Y[,2], z = z)
+
+par(mar=c(2,2,1,1), mfrow=c(1,1))
+
+p <- ggplot(dat, aes(x, y, colour = z)) + geom_point(cex=0.5)
+pdf(file.path(viz_dir,paste0("oeHBC_", deparse(substitute(glist)), "_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
+print(p + t1+t2+scale_colour_gradient2(low = "#053061", mid = "grey95", high = "#67001F"))
+cat("\n\n")
+dev.off()
+
+#ggsave(file.path(viz_dir,paste0("oeHBC_", deparse(substitute(glist)), "_tsne_points_",Sys.Date(),".svg")), width=3.5,height=3.25)
+
+}
+
+plotscaledtsne(CC40)
+plotscaledtsne(UPR)
+plotscaledtsne(WR8)
+plotscaledtsne(Hopx)
+
+glist <- c("Trp63","Krt5","Krt14","Krt6a","Krt16", "Sprr1a","Krtdap","Lgals1","Hbegf","Gpx2","Il33")
+
+lapply(glist, function(gene){
+  z <- transform(cmobj)[gene,]
+  allplots <- NULL
+  dat <- data.frame(x = tsne_data$Y[,1], y = tsne_data$Y[,2], z = z)
+  p <- ggplot(dat, aes(x, y, colour = z)) + geom_point(cex=0.5)
+  p <- p + t1+t2+scale_colour_gradient(low = "#FFFFCC", high = "#000000")
+  
+  pdf(file.path(viz_dir,paste0("oeHBC_",gene,"_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
+  par(mar=c(2,2,1,1), mfrow=c(1,1))
+  print(p)
+  cat("\n\n")
+  dev.off()
+  })
+
+```
+```{r de}
+counts <- assay(cmobj)
+counts_log <- transform(cmobj)
+oeHBC_clus.labelsn <- as.numeric(oeHBC_clus.labels)
+
+getBestNFeatures <- function(counts, clusterVector, contrastType, n, isCount=FALSE){
+  feat <- getBestFeatures(counts, clusterVector, contrastType=contrastType, number=n, contrastAdj="All", p.value=0.05, isCount=isCount)
+  adj <- ifelse(isCount, "voom", "limma")
+  filename <- paste0(expt_str, "_", contrastType, n, "_", adj, ".txt")
+  write.table(feat, file.path(DE_dir, filename), quote=FALSE,sep="\t")
+  return(feat)
+}
+
+OneVAll <- getBestNFeatures(counts_log, oeHBC_clus.labelsn, "OneVAll", 50)
+save(OneVAll, file = file.path(DE_dir, paste0(expt_str, "_DE_OneVall_limma.Rda")))
+
+cluster_ord <- levels(oeHBC_clus.labels)
+breakv <- c(min(transform(cmobj)), seq(0, quantile(transform(cmobj)[transform(cmobj) > 0], .99, na.rm = TRUE), length = 50), max(transform(cmobj)))
+expt <- colData(cmobj)$expt
+allclus.labels<- hbc_clus.labels[order(match(hbc_clus.labels,cluster_ord))]
+batch=droplevels(colData(cmobj)[names(allclus.labels),"batch"])
+
+pdf(file=file.path(viz_dir,paste0("oeHBC_DE50_", Sys.Date(), ".pdf")), width=7, height=4)
+plotHeatmap(transform(hbc_obj)[oneVall50_genes,names(allclus.labels)], clusterSamples=FALSE,clusterFeatures=TRUE, breaks=breakv, sampleData=data.frame(clusters=allclus.labels, expt=colData(hbc_obj)[names(allclus.labels), "expt"], batch=batch), clusterLegend=list(clusters=col.pal,expt=cole, batch=bigPalette))
+dev.off()
+```
