@@ -36,12 +36,10 @@ oeHBCregendiff_Mat <- transform(cmobj)
 ######------DE genes for heatmap
 
 #####-----Differential expression with limma voom on post-SCONE normalized counts; note that I add 0.5 and voom will add 0.5 more - #####otherwise, there are issues with normalized counts with values < -0.5.
-
 pairsDEallv <-getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="Pairs", number=Inf, contrastAdj="All", p.value=1, isCount=TRUE)
 write.table(pairsDEallv, file.path(DE_dir, paste0(expt_str, "_pairs_all_voom.txt")), quote=FALSE, sep="\t")
 
 #####-----To compare the regeneration HBC activated cluster (cl5) to the p63 cKO differentiation HBC transition cluster (cl19)
-
 cl5vscl19 <- pairsDEallv[pairsDEallv$Contrast == "X19-X5",]
 cl5vscl19 <- cl5vscl19[cl5vscl19$adj.P.Val < 0.01 & abs(cl5vscl19$logFC) > 1, ]
 
@@ -54,12 +52,13 @@ HBCdePairs <- as.character(droplevels(cl5vscl19[1:50,4]))
 
 ###Subsetting and preparing cluster assignments for plotting heatmaps
 ```{r dataPreparation}
+
 oeHBCdiff_dir = "../output/clust/oeHBCdiff"
 clus.labels_diff <- loadToEnv(file.path(oeHBCdiff_dir, paste0("oeHBCdiff_PCA.Rda")))[["clus.labels"]]
 HBCdiffnames <- names(clus.labels_diff)[clus.labels_diff %in% c(1,8,5)]
 
 oeHBCregen_dir <- "../output/clust/oeHBCregen"
-clus.labels_regen <- loadToEnv(file.path(oeHBCregen_dir, paste0("EWT_PCA.Rda")))[["clus.labels"]]
+clus.labels_regen <- loadToEnv(file.path(oeHBCregen_dir, paste0("oeHBCregenWT_PCA.Rda")))[["clus.labels"]]
 clus.labels_regen <- factor(clus.labels_regen, levels=c(levels(clus.labels_regen),"H3"))
 regennames <- names(clus.labels_regen)[clus.labels_regen %in% c(9,6,8,4,1)]
 hbcsamples <- unique(c(HBCdiffnames, regennames))
