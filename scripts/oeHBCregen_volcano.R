@@ -13,7 +13,7 @@ load(file.path(clust_dir, paste0(expt_str,"_cmmerged.Rda")))
 load(file.path(clust_dir, paste0(expt_str, "_slingshot_out.Rda")))
 
 pairsDE <- getBestFeatures(transform(cmobj), primaryCluster(cmobj), contrastType="Pairs",number=Inf,p.value=0.05)
-write.table(pairsDE, file.path(DE_dir,"all_DE_pairs.txt"),quote=FALSE,sep="\t")
+write.table(pairsDE, file.path(DE_dir,"oeHBCregenWT_pairwiseDE.txt"),quote=FALSE,sep="\t")
 
 get_tuple <- function(lineages, n) rbind(do.call(rbind,lapply(lineages[n], function(x) data.frame(cbind(x[-1],x[-length(x)]), stringsAsFactors = F))))
 
