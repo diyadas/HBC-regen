@@ -70,30 +70,20 @@ save(lineages, curves, file=file.path(out_dir, paste0(expt_str, "_slingshot_out.
 ### Saving slingshot output
 ```{r lineagedata}
 
-nlm <- transform(cmobj)[,rownames(X2)[order(curves[[1]]$pseudotime, na.last = NA)]]
-hlm <- transform(cmobj)[,rownames(X2)[order(curves[[2]]$pseudotime, na.last = NA)]]
-h2lm <- transform(cmobj)[,rownames(X2)[order(curves[[3]]$pseudotime, na.last = NA)]]
-slm <- transform(cmobj)[,rownames(X2)[order(curves[[4]]$pseudotime, na.last = NA)]]
-nlclusters <- clus.labels2[colnames(nlm)]
-hlclusters <- clus.labels2[colnames(hlm)]
-h2lclusters <- clus.labels2[colnames(h2lm)]
-slclusters <- clus.labels2[colnames(slm)]
+UIcl1mat <- transform(cmobj)[, names(expt)[grepl("UI", expt) & clus.labels==1]]
 
-exptUIcl1 <- names(expt)[grepl("UI", expt) & clus.labels==1]
-UIcl1mat <- transform(cmobj)[, exptUIcl1]
 
-nlm2 <- cbind(UIcl1mat, nlm)
-slm2 <- cbind(UIcl1mat, slm)
-hlm2 <- cbind(UIcl1mat, hlm)
-h2lm2 <- cbind(UIcl1mat, h2lm)
-nlclusters2 <- clus.labels[colnames(nlm2)]
-hlclusters2 <- clus.labels[colnames(hlm2)]
-h2lclusters2 <- clus.labels[colnames(h2lm2)]
-slclusters2 <- clus.labels[colnames(slm2)]
+nlm <- cbind(UIcl1mat, transform(cmobj)[,rownames(X2)[order(curves[[1]]$pseudotime, na.last = NA)]])
+hlm <- cbind(UIcl1mat, transform(cmobj)[,rownames(X2)[order(curves[[2]]$pseudotime, na.last = NA)]])
+h2lm <- cbind(UIcl1mat,transform(cmobj)[,rownames(X2)[order(curves[[3]]$pseudotime, na.last = NA)]])
+slm <- cbind(UIcl1mat, transform(cmobj)[,rownames(X2)[order(curves[[4]]$pseudotime, na.last = NA)]])
+nlclusters <- clus.labels[colnames(nlm)]
+hlclusters <- clus.labels[colnames(hlm)]
+h2lclusters <- clus.labels[colnames(h2lm)]
+slclusters <- clus.labels[colnames(slm)]
 
-save(UIcl1mat, nlm, hlm, h2lm, slm, nlclusters, slclusters, hlclusters, h2lclusters, file=file.path(out_dir, paste0(expt_str, "_lineageData.Rda")))
 
-save(nlm2, hlm2, h2lm2, slm2, nlclusters2, slclusters2, hlclusters2, h2lclusters2, file=file.path(out_dir, paste0(expt_str, "_lineageData2.Rda")))
+save(nlm, hlm, h2lm, slm, nlclusters, slclusters, hlclusters, h2lclusters, file=file.path(out_dir, paste0(expt_str, "_lineageData.Rda")))
 
 cmobj <- cmobj[, colnames(cmobj) %in% names(clus.labels)]
 
