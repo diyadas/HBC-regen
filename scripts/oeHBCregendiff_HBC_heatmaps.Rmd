@@ -27,15 +27,15 @@ colpalH <- cc[c(26,14,12,29,1,3,6)]
 cole <- c(brewer.pal(8, "Blues")[-c(1:2)], brewer.pal(5, "Reds"), brewer.pal(12, "Paired")[10])
 
 #####-----oeHBCregendiff matrix
-load(file=file.path(clust_dir, paste0(oeHBCregendiff, "_none_fq_ruv1_nobio_nobatch_hier_final_clusters.Rda")))
-oeHBCregendiff_Mat <- transform(cmobj2)
+load(file=file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
+oeHBCregendiff_Mat <- transform(cmobj)
 ```
 
 ###Pairwise DE, selecting comparison between activated HBCs (cl5) and transitional HBCs (cl19)
 ```{r pairwiseDE}
 ######------DE genes for heatmap
 
-#####-----DE with limma voom on post-SCONE normalized counts; note that I add 0.5 and voom will add 0.5 more - #####otherwise, there are issues with normalized counts with values < -0.5.
+#####-----Differential expression with limma voom on post-SCONE normalized counts; note that I add 0.5 and voom will add 0.5 more - #####otherwise, there are issues with normalized counts with values < -0.5.
 
 pairsDEallv <-getBestFeatures(assay(cmobj2)+0.5, cmobj2@clusterMatrix[,1], contrastType="Pairs", number=Inf, contrastAdj="All", p.value=1, isCount=TRUE)
 write.table(pairsDEallv, file.path(DE_dir, paste0(expt_str, "_pairs_all_voom.txt")), quote=FALSE, sep="\t")
@@ -65,7 +65,7 @@ regennames <- names(clus.labels_regen)[clus.labels_regen %in% c(9,6,8,4,1)]
 hbcsamples <- unique(c(HBCdiffnames, regennames))
 
 # load combined data
-cmobj <- get(load(file.path(clust_dir, paste0(oeHBCregendiff,"_none_fq_ruv1_nobio_nobatch_cm_hier_2.Rda"))))
+cmobj <- get(load(file.path(clust_dir, paste0(expt_str, "_none_fq_ruv1_nobio_nobatch_cm_hier_2.Rda"))))
 
 hbc_obj <- cmobj[,match(hbcsamples,colnames(cmobj),nomatch = 0)]
 hbc_clus.labels <- rep(0, ncol(hbc_obj)); names(hbc_clus.labels) <- colnames(hbc_obj)
