@@ -36,8 +36,8 @@ load(file.path(out_dir, paste0(expt_str,"_PCA.Rda")))
 
 cole <- c(brewer.pal(length(grep("K5ERRY", levels(expt)))+2, "Blues")[-(1:2)],brewer.pal(length(grep("KO", levels(expt))), "Reds"))
 
-if (expt_str=="EWT") cluster_ord <- c(9,6,2,5,7,11,12,3,8,4,1)
-if (expt_str=="E3") cluster_ord <- c(4,1,12,5,7,2,13,3,6,9,15,16,14)
+if (expt_str=="oeHBCregenWT") cluster_ord <- c(9,6,2,5,7,11,12,3,8,4,1)
+if (expt_str=="oeHBCregenWTKO") cluster_ord <- c(4,1,12,5,7,2,13,3,6,9,15,16,14)
 
 
 ```
@@ -63,12 +63,6 @@ dev.off()
 pdf(file = file.path(viz_dir,paste0(expt_str, "_pairs_", Sys.Date(), ".pdf")), width=8, height=8)
 pairs(X[,1:6], col=alpha(col.pal[clus.labels],1),pch=19, xaxt='n',yaxt='n', asp=1, cex=0.5)
 dev.off()
-
-pdf(file = file.path(viz_dir,paste0(expt_str, "_pairsNS_", Sys.Date(), ".pdf")), width=8, height=8)
-pairs(t(nlm2)[,c("Omp", "Gap43", "Cnga2", "Sox11", "Cyp2g1", "Cyp1a2")], col=alpha(col.pal[clus.labels[colnames(nlm2)]],1),pch=19, cex=0.5)
-legend("bottomright",levels(clus.labels),fill=col.pal,cex=0.5, xpd=TRUE)
-dev.off()
-
 ```
 ### t-SNE
 ```{r tsne}
@@ -90,7 +84,7 @@ tsne_data <- rtsne_fx(cmobj,clus.labels,ngenes=nrow(cmobj), perplexity=perplexit
 ```{r tsne-clus}
 svg(file.path(viz_dir,paste(expt_str,"tsne_points",Sys.Date(),perplexity,iter,".svg", sep="_")), width=3.25,height=3.25)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
-plot(tsne_data$Y, col=col.pal[clus.labels], pch=19, xaxt='n',yaxt='n',cex=0.5,ylab="",xlab="", main=perplexity)
+plot(tsne_data$Y, col=col.pal[clus.labels], pch=19, xaxt='n',yaxt='n',cex=0.5,ylab="",xlab="")
 dev.off()
 
 svg(file.path(viz_dir,paste0(expt_str,"_tsne_medoids_",Sys.Date(),".svg")), width=3.25,height=3.25)
@@ -113,13 +107,9 @@ svg(file.path(viz_dir,paste0(expt_str,"_tsne_expt_",Sys.Date(),".svg")), width=1
 par(mar=c(0.5, 0.5, 0.5, 0.5), oma=c(0, 0, 0, 0))
 layout(matrix(c(1:18), 3, 6, byrow=TRUE), widths = rep(lcm(3.8), 6), heights = rep(lcm(3.8), 3))
 
-tsne_sub <- function(tsne_data, i){
+for (i in 1:sum(grepl("K5ERRY", levels(expt)))){
   plot(tsne_data$Y, col=alpha("beige", 1), pch=19, xlab="", ylab='', xaxt='n', yaxt='n', cex=0.5)
   points(tsne_data$Y[expt==levels(expt)[i],], cex=0.5, col=col.pal[clus.labels[expt==levels(expt)[i]]], pch=19)
-}
-
-for (i in 1:sum(grepl("K5ERRY", levels(expt)))){
-  tsne_sub(tsne_data,i)
 }
 dev.off()
 ```
