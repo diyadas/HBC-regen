@@ -18,14 +18,17 @@ We created a number of visualizations based on clustering, experimental conditio
 In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCregen`, and add new directories to `.gitignore`. Place the scripts in the 'scripts' directory and the initial eSet 'data' in the data directory.
 
 ### Filtering and Normalization
-`oeHBCregen_1_filt_norm.sh` performs the following analyses, by calling various R scripts (given in parentheses):
+`oeHBC_1_filt_norm.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
-1. Filtering based on technical attributes (`oeHBCregen_filtering.R`)
-2. Normalization using SCONE (`oeHBCregen_norm.R`)
+1. Filtering based on technical attributes (`oeHBC_filtering.R`)
+2. Normalization using SCONE to get rankings (`oeHBC_norm.R`)
 
-`oeHBCregen_2_renorm_clust_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
+`oeHBC_2_norm.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
-3. Create SummarizedExperiment object for desired normalization (`oeHBCregen_makeSE.R`)
+3. Get normalized matrices for several normalizations (`oeHBC_norm.R`)
+3. Make SummarizedExperiment objects for each normalization (`oeHBC_makeSE.R`)
+4. Create final list of samples to exclude as contaminants (`oeHBC_exclude.R`)
+4. Create SummarizedExperiment object for desired normalization (`oeHBCregen_makeSE.R`)
 4. Identification of **biological** contaminants (`oeHBCregen_exclude.R`)
 4. Re-filtering after removal of contaminants (`oeHBCregen_filtering.R`)
 4. Re-normalization after removal of contaminants (`oeHBCregen_norm.R`)
