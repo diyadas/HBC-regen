@@ -27,12 +27,13 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 
 3. Get normalized matrices for several normalizations (`oeHBC_norm.R`)
 3. Make SummarizedExperiment objects for each normalization (`oeHBC_makeSE.R`)
-4. Create final list of samples to exclude as contaminants (`oeHBC_exclude.R`)
-4. Create SummarizedExperiment object for desired normalization (`oeHBCregen_makeSE.R`)
-4. Identification of **biological** contaminants (`oeHBCregen_exclude.R`)
-4. Re-filtering after removal of contaminants (`oeHBCregen_filtering.R`)
+4. Create final list of samples to exclude as biological contaminants (`oeHBC_exclude.R`)
+
+`oeHBC_3_filt_norm.sh` performs the following analyses, by calling various R scripts:
+
+5. Filtering based on contaminants and technical attributes (`oeHBC_filtering.R`)
 4. Re-normalization after removal of contaminants (`oeHBCregen_norm.R`)
-5. Create SummarizedExperiment object (`oeHBCregen_makeSE_expt.R`)
+5. Create SummarizedExperiment object for each experiment (`oeHBCregen_makeSE_expt.R`)
 
 ### Clustering, Developmental Ordering, Differential Expression
 `oeHBCregen_3_renorm_clust_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
