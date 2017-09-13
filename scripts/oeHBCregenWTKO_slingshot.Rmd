@@ -14,7 +14,7 @@ output:
 ```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
 knitr::opts_chunk$set(fig.align="center", cache=FALSE, error=FALSE, message=FALSE, warning=FALSE)
 
-library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl); library(rglwidget)
+library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl)
 ```
 ```{r setup}
 expt_str <- "oeHBCregenWTKO"
@@ -28,7 +28,7 @@ cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(6,"Reds"))
 ### Calculations
 #### Merging clusters
 ```{r merge}
-load(file.path(clust_dir,paste0(expt_str,"_",nrm_str, "_cm_hier_cons.Rda")))
+load(file.path(out_dir,paste0(expt_str,"_",nrm_str, "_hier_cons.Rda")))
 cmobjM <- makeDendrogram(cm2,dimReduce="var",ndims=1000)
 cmobjM <- mergeClusters(cmobjM, mergeMethod="locfdr", plotType="mergeMethod", cutoff=0.18)
 
@@ -37,9 +37,7 @@ cmobj <- mergeClusters(cmobj, mergeMethod="adjP", plotType="mergeMethod", cutoff
 
 clus.labelsWTKO <- primaryCluster(cmobjM); names(clus.labelsWTKO) <- colnames(cmobjM)
 exptWTKO <- colData(cmobjM)$expt; names(exptWTKO) <- colnames(cmobjM)
-exclude_wtlowqc <- names(clus.labelsWTKO)[clus.labelsWTKO==11 & grepl("K5ERRY", exptWTKO)]
-
-save(exclude_wtlowqc, file=file.path("../ref",paste0(esh, "_exclude_lowqc.Rda")))
+dplot <- c(1:3)
 ```
 #### Drop Fabp5+ cells and -1s and do PCA 
 ```{r drop}
@@ -115,7 +113,7 @@ centers <- t(sapply(levels(oclus.labels),function(clID){
   return(colMeans(x.sub))
 }))
 center.col <- sapply(levels(oclus.labels),function(clID){
-  ocol.pal[oclus.labels][which.max(oclus.labels == clID)]
+  col.pal[oclus.labels][which.max(oclus.labels == clID)]
 })
 
 open3d()
@@ -128,5 +126,5 @@ plot3d(centers,col=center.col, add=TRUE,size=15)
 axes3d(tick=FALSE)
 par3d(windowRect = c(20, 30, 800, 800))
 rgl.postscript(file.path(viz_dir,paste0(expt_str, "_slingshot_clus_",ndims, "_",Sys.Date(), ".svg")), fmt="svg")
-rglwidget()
+
 ```

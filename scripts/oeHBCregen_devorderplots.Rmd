@@ -18,29 +18,18 @@ library(slingshot);library(clusterExperiment);library(RColorBrewer); library(rgl
 
 ## Setup
 ```{r setup}
-expt_str <- "Expt3"
-esh <- gsub("Expt","E",expt_str)
+expt_str <- "oeHBCregenWTKO"
 out_dir = file.path("../output/clust", expt_str)
 viz_dir = file.path("../output/viz", expt_str)
 
-load(file.path(out_dir, paste0(esh,"_PCA.Rda")))
-load(file.path(out_dir, paste0(esh, "_slingshot_out.Rda")))
+load(file.path(out_dir, paste0(expt_str,"_PCA.Rda")))
+load(file.path(out_dir, paste0(expt_str, "_slingshot_out.Rda")))
 
-load(file.path(out_dir, paste0(esh, "_lineageData2.Rda")))
-load(file.path(out_dir, paste0(esh, "_cmmerged.Rda")))
+load(file.path(out_dir, paste0(expt_str, "_lineageData2.Rda")))
+load(file.path(out_dir, paste0(expt_str, "_cmmerged.Rda")))
 ```
 
 ## Visualizations
-
-### PCA by cluster, 2D and 3D
-```{r pca}
-# 2D
-pdf(file = file.path(viz_dir,paste0(esh, "_2D_cluster_",Sys.Date(),".pdf")), width=8, height=8) 
-pairs(X[,1:5], col=alpha(col.pal[as.factor(clus.labels)],1),pch=19, xaxt='n', yaxt='n', asp=1, cex=0.5)
-dev.off()
-
-
-```
 
 ### Developmental order dot plots
 ```{r dotplot}
@@ -85,7 +74,7 @@ for (i in 1:length(curves)){
   
   medoids <- sapply(levels(linedf$oclus.labels),function(clID){
     x.sub <- linedf$pseudotime[linedf$oclus.labels == clID]
-    col <- ocol.pal[linedf$oclus.labels][which.max(linedf$oclus.labels==clID)]
+    col <- col.pal[linedf$oclus.labels][which.max(linedf$oclus.labels==clID)]
     return(list(means = mean(x.sub, na.rm=TRUE), sdev= sd(x.sub, na.rm=TRUE), col=col))
   })
   means = unlist(medoids["means",])
@@ -94,7 +83,7 @@ for (i in 1:length(curves)){
 
   svg(file.path(viz_dir, paste0(esh, "_byorig_Lineage", i, "_shrink", 1, "_", Sys.Date(),".svg")),width=8.5, height=2)
   par(mfrow=c(3, 1),mar=c(1, 1, 1, 1))
-  plot(linedf$pseudotime,rep(0, length(linedf$pseudotime)),cex=3,axes=F, pch=16, xlab='', ylab='', col=alpha(ocol.pal[linedf$oclus.labels],0.5), ylim=c(-0.1, 0.1)); abline(h=0, col=alpha("black", 0.5))
+  plot(linedf$pseudotime,rep(0, length(linedf$pseudotime)),cex=3,axes=F, pch=16, xlab='', ylab='', col=alpha(col.pal[linedf$oclus.labels],0.5), ylim=c(-0.1, 0.1)); abline(h=0, col=alpha("black", 0.5))
   points(x=means,y=rep(0.07, length(means)), col=col, pch=19)
   arrows(means-sdev, rep(0.07, length(means)), means+sdev, rep(0.07, length(means)), length=0.05, angle=90, code=3, col=col)
   #legend("left", levels(linedf$clus.labels), fill=col, cex=0.5, xpd=TRUE, inset=c(-0.12,0.1))

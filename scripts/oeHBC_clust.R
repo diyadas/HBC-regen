@@ -36,7 +36,7 @@ seqArgs=list(k.min=3, top.can=5), random.seed=seed, run=TRUE, ks = 4:15, verbose
 save(cmobj,alpha,beta,minSize, seed, file=file.path(clust_dir, paste0(expt_str,"_", normstr,"_cm.Rda")))
 
 cm2 <- combineMany(cmobj, proportion=0.5, whichClusters = clusterLabels(cmobj)[grep("hier",clusterLabels(cmobj))])
-save(cm2, file=file.path(clust_dir,paste0(normstr,"_hier_cons.Rda")))
+save(cm2, file=file.path(clust_dir,paste0(expt_str,"_", normstr,"_hier_cons.Rda")))
 
 cm2 <- combineMany(cmobj, proportion=0.5)
-save(cm2, file=file.path(clust_dir,paste0(normstr,"_all_cons.Rda")))
+save(cm2, file=file.path(clust_dir,paste0(expt_str,"_", normstr,"_all_cons.Rda")))

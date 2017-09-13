@@ -30,10 +30,10 @@ cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(6,"Reds"))
 ### Calculations
 #### Merging clusters, dropping Fabp5+ contaminants
 ```{r merge}
-load(file.path(clust_dir,paste0(expt_str,"_",nrm_str, "_cm_all_cons.Rda")))
+load(file.path(out_dir,paste0(expt_str,"_",nrm_str, "_all_cons.Rda")))
 cmobj <- makeDendrogram(cm2,dimReduce="PCA",ndims=10)
-cmobj <- mergeClusters(cmobj, mergeMethod="adjP", plotType="mergeMethod", cutoff=0.3)
-cmobj <- cmobj[, !(colnames(cmobjM) %in% exclude_wtlowqc)]
+cmobj <- mergeClusters(cmobj, mergeMethod="adjP", plotType="mergeMethod", cutoff=0.03)
+cmobj <- cmobj[, !(colnames(cmobj) %in% exclude_wtlowqc)]
 
 Eh="9"; Esus="3"; En="12";Ehrenew="1"
 
@@ -42,7 +42,7 @@ keepcl <- !(mergeCl %in% c(-1, 10)) & !(colnames(cmobj) %in% exclude_wtlowqc) # 
 
 pcax <- prcomp(t(transform(cmobj)[,keepcl]))
 clus.labels <- factor(mergeCl[keepcl])
-expt <- colData(cmobj)$expt[keepcl]
+expt <- droplevels(colData(cmobj)$expt[keepcl])
 X <- pcax$x
 names(expt) <- names(clus.labels) <- rownames(X)
 ```
@@ -52,7 +52,6 @@ drop_cl <- as.numeric(names(table(clus.labels)[table(clus.labels) < 10]))
 keepcl2 <- !(grepl("UI", expt)  & clus.labels ==1) & !(clus.labels %in% drop_cl)
 X2 <- X[keepcl2,]
 clus.labels2 <- clus.labels[keepcl2]
-oclus.labels2 <- oclus.labels[keepcl2]
 expt2 <- expt[keepcl2]
 maxN <- min(table(clus.labels2))-1
 
@@ -121,5 +120,4 @@ plot3d(centers,col=center.col, add=TRUE,size=15)
 axes3d(tick=FALSE)
 par3d(windowRect = c(20, 30, 800, 800))
 rgl.postscript(file.path(viz_dir,paste0(expt_str, "_slingshot_clus_",ndims,"_",Sys.Date(), ".svg")), fmt="svg")
-rglwidget()
 ```
