@@ -91,8 +91,8 @@ print(mm)
 # DE TFs - OneVAll
 
 ```{r}
-de_NL <- read.table(paste0("../output/DE/",expt_str,"/","NL_DE_oneVall_limma_500_2.txt"), stringsAsFactors = FALSE)
-de_SL <- read.table(paste0("../output/DE/",expt_str,"/SL_DE_oneVall_limma_500_2.txt"), stringsAsFactors = FALSE)
+de_NL <- read.table(paste0("../output/DE/",expt_str,"/NL_DE_oneVall_limma_500.txt"), stringsAsFactors = FALSE)
+de_SL <- read.table(paste0("../output/DE/",expt_str,"/SL_DE_oneVall_limma_500.txt"), stringsAsFactors = FALSE)
 
 tf_heatmap <- function(mat_tf, de, col.pal, name){
 var_tf <- mat_tf[intersect(de$Feature, rownames(mat_tf)),]
