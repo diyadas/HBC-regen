@@ -17,20 +17,15 @@ knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE
 library(clusterExperiment)
 library(RColorBrewer)
 
-expt_str <- "ExptWT"
+expt_str <- "oeHBCregenWT"
 clust_dir <- file.path("../output/clust", expt_str)
 viz_dir <- file.path("../output/viz", expt_str)
-esh <- gsub("Expt","E",expt_str)
 
 cc <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
 colpal <- cc[c(1,17,2,29,30,14,9,12,26,13,8)]
 cchbc <- colpal[-c(2:5,7,8,10,11)]
 
-load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_slingshot_out.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_PCA.Rda")))
-rm(X, X2)
-load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
+load(file=file.path(clust_dir, paste0(expt_str, "_lineageData.Rda")))
 
 ```
 
@@ -39,20 +34,23 @@ load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merg
 
 #####-----For producing gene pairs plots (Figure S4)
 
-HBCmat <- nlm2[,nlclusters2 %in% c("1", "9","6")]
-hbcCl<- droplevels(nlclusters2[colnames(HBCmat)])
+HBCmat <- nlm[,nlclusters %in% c("1", "9","6")]
+hbcCl<- droplevels(nlclusters[colnames(HBCmat)])
 
 cchbc <- colpal[-c(2:5,7,8,10,11)]
 
+###---list of genes for HBC cluster/cell type gene expression pairs plots 
 listFigure4A <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Krt16", "Lgals1", "Il33", "Hopx")
 listFigure4B <- c("Top2a", "Ccnb1", "Cdk1", "Rrm2")
 
-genePairsPlot <- function(mat, geneList, clusterVector, colorV, geneListTitle) {
+#####-----function for producing gene expression pairs plots
+genePairsPlot <- function(mat, geneList, clusterVector, colorVector, geneListTitle) {
   geneList <- as.character(geneList)
-  pdf(file=file.path(viz_dir, paste0(esh, "_genePairsPlot_", geneListTitle,".pdf")), width=2*length(geneList), height=2*length(geneList))
+  pdf(file=file.path(viz_dir, paste0(expt_str, "_genePairsPlot_", geneListTitle,".pdf")), width=2*length(geneList), height=2*length(geneList))
   pairs(t(mat[geneList,]), col=colorV[clusterVector], asp=1, pch=19)
   dev.off()
 }
+#####
 
 genePairsPlot(HBCmat, listFigure4A, hbcCl, cchbc, "HBCact")
 genePairsPlot(HBCmat, listFigure4B, hbcCl, cchbc, "HBCcellCycle")

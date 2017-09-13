@@ -14,43 +14,16 @@ fig_height: 10
 ```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
 knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
 
-library(clusterExperiment)
 library(RColorBrewer)
-library(Rtsne); library(scales); library(ggplot2)
 
-expt_str <- "ExptWT"
+expt_str <- "oeHBCregenWT"
 clust_dir <- file.path("../output/clust", expt_str)
 viz_dir <- file.path("../output/viz", expt_str)
-DE_dir <- file.path("../output/DE", expt_str)
-DEG_dir <- file.path("../output/DEG",expt_str)
-esh <- gsub("Expt","E",expt_str)
+
+load(file=file.path(clust_dir, paste0(expt_str, "_lineageData.Rda")))
 
 cc <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
 colpal <- cc[c(1,17,2,29,30,14,9,12,26,13,8)]
-cole <- c(brewer.pal(8, "Blues")[-c(1:2)])
-
-load(file=file.path(clust_dir, paste0(esh, "_lineageData.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_slingshot_out.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_PCA.Rda")))
-#rm(X, X2)
-load(file=file.path(clust_dir, paste0(esh, "_lineageData2.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
-load(file=file.path(clust_dir, paste0(esh, "_cmmerged.Rda")))
-
-ccAll <- intersect(unlist(read.table ("../ref/cellCycleAll.txt")),rownames(nlm))
-
-ccn2 <- colpal[-c(3,4,8)] 
-ccs2 <- colpal[-c(2,4,5,7,8,10,11)]
-cch2 <- colpal[-c(2,3,4,5,7,10,11)]
-
-uiPT <- rep.int(0,60)
-names(uiPT) <- colnames(UIcl1mat)
-NL2devO <- c(uiPT, NLdevO)
-SL2devO <- c(uiPT, SLdevO)
-HL2devO <- c(uiPT, HLdevO)
-
-Xmat <- transform(cmobjM)
-Xmat <- Xmat[,rownames(X)]
 
 ```
 
@@ -63,35 +36,35 @@ Xmat <- Xmat[,rownames(X)]
 singleGPlot <- function(matrix,geneList,clusters, colorVector,lineage){
   geneList <- as.character(geneList)
   for (i in seq_along(geneList)){
-    pdf(file=file.path(viz_dir,"042117",paste0(lineage,"_devOplot-",geneList[i],".pdf")),width=4.5, height=4.5)
+    pdf(file=file.path(viz_dir,paste0(expt_str, "_", lineage,"_devOplot-",geneList[i],".pdf")),width=4.5, height=4.5)
     plot(matrix[geneList[i],],col=colorVector[clusters],xlab=paste0(lineage," Lineage Developmental Order"), ylab="log2 counts" ,main=paste(lineage,"Lineage,", geneList[i], sep=" "), ylim=c(-1, 13), pch=19)
-    #lines(lowess(matrix[geneList[i],],f=0.15,delta=2),lwd=0.5)
     dev.off()
   }}
+###########################################################
 
-######-----Figure 3A: developmental order line plots for each lineage
+#####-----Figure 3A: developmental order line plots for each lineage
 NLPT <- rep.int(0,353)
-names(NLPT) <- colnames(nlm2)
-plot(NLPT,col=colpal[nlclusters2],xlab=paste0("NL Developmental Order"), ylab="log2 counts", pch=15) 
+names(NLPT) <- colnames(nlm)
+plot(NLPT,col=colpal[nlclusters],xlab=paste0("NL Developmental Order"), ylab="log2 counts", pch=15) 
 SLPT <- rep.int(0,348)
-names(SLPT) <- colnames(slm2)
-plot(SLPT,col=colpal[slclusters2],xlab=paste0("SL Developmental Order"), ylab="log2 counts", pch=15) 
+names(SLPT) <- colnames(slm)
+plot(SLPT,col=colpal[slclusters],xlab=paste0("SL Developmental Order"), ylab="log2 counts", pch=15) 
 HLPT <- rep.int(0,341)
-names(HLPT) <- colnames(hlm2)
-plot(HLPT,col=colpal[hlclusters2],xlab=paste0("HL Developmental Order"), ylab="log2 counts", pch=15) 
+names(HLPT) <- colnames(hlm)
+plot(HLPT,col=colpal[hlclusters],xlab=paste0("HL Developmental Order"), ylab="log2 counts", pch=15) 
 
-###---Candidate Gene and/or Marker Lists
+###---Lists of genes for gene expression plots
 ListFigureS4C <- c("Krt16", "Lgals1", "Hopx")
 ListFigure3B <- c("Krt5", "Trp63", "Krt6a", "Sprr1a", "Il33")
 
 #####-----Figure 3B Gene expression plots
-singleGPlot(nlm2, ListFigure3B, nlclusters2, colpal, "Neuronal2")
-singleGPlot(slm2, ListFigure3B, slclusters2, colpal, "Sus2")
-singleGPlot(hlm2, ListFigure3B, hlclusters2, colpal, "HBC1-2")
+singleGPlot(nlm, ListFigure3B, nlclusters, colpal, "Neuronal")
+singleGPlot(slm, ListFigure3B, slclusters, colpal, "Sustentacular")
+singleGPlot(hlm, ListFigure3B, hlclusters, colpal, "HBC")
 
 #####-----Figure S4C Gene expression plots
-singleGPlot(nlm2, ListFigureS4C, nlclusters2, colpal, "Neuronal2")
-singleGPlot(slm2, ListFigureS4C, slclusters2, colpal, "Sus2")
-singleGPlot(hlm2, ListFigureS4C, hlclusters2, colpal, "HBC1-2")
+singleGPlot(nlm, ListFigureS4C, nlclusters, colpal, "Neuronal")
+singleGPlot(slm, ListFigureS4C, slclusters, colpal, "Sustentacular")
+singleGPlot(hlm, ListFigureS4C, hlclusters, colpal, "HBC")
 
 ```
