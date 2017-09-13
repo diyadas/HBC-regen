@@ -22,16 +22,12 @@ library(parallel)
 ###Set-up and Loading
 ``` {r loading&set-up}
 
-expt_str <- "ExptWT"
+expt_str <- "oeHBCregenWT"
 
 clust_dir = file.path("../output/clust", expt_str)
 DE_dir <- file.path("../output/DE", expt_str)
 
-load(file.path(clust_dir, paste0("EWT_none_fq_ruv1_nobio_nobatch_all_merge_10PCadjP03.Rda")))
-
-##--remove Fabp5+ cluster from the clusterExperiment object, leaving only the clusters used in the lineage analysis by slingshot
-cmobj2M <- cmobjM[,!(primaryClusterNamed(cmobjM) %in% c("-1", "m10"))]
-save(cmobj2M, file=file.path(DE_dir, paste0(expt_str,"_finalClusterObject.Rda")))
+load(file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
 
 printf <- function(...) cat(sprintf(...))
 
@@ -58,7 +54,7 @@ selectedGeneSets = c(Mm.H, Mm.c2[grepl("^(KEGG|BIOCARTA|PID|REACTOME)_", names(M
 mart <- useMart("ensembl")
 mart <- useDataset("mmusculus_gene_ensembl", mart = mart)
 bm <- getBM(attributes=c('mgi_symbol', 'entrezgene'), mart = mart)
-bm <- bm[match(rownames(cmobj2), bm[,1]),]
+bm <- bm[match(rownames(cmobj), bm[,1]),]
 bm <- na.omit(bm)
 
 geneSets_idx <- ids2indices(selectedGeneSets, bm[,2])

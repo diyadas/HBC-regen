@@ -21,19 +21,18 @@ clust_dir = file.path("../output/clust", expt_str)
 DE_dir <- file.path("../output/DE", expt_str)
 
 load(file.path(DE_dir, "MSigDBselectedGeneSets.Rdata"))
-load(file.path(DE_dir, "oeHBCregenWT_finalClusterObject.Rda"))
+load(file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
 
 message("data loaded")
-cmobj2 <- cmobj2M
 NO_OUTPUT <- FALSE #for debug and command-line runs
 TEST_GENE_SETS = TRUE
 
 if(TEST_GENE_SETS) {
-  lognorm <- transform(cmobj2)
+  lognorm <- transform(cmobj)
   lognorm <- lognorm[bm[,1],]
   dim(lognorm)
-  cont <- clusterContrasts(cmobj2, contrastType="OneAgainstAll")$contrastMatrix
-  X <- as.factor(primaryCluster(cmobj2))
+  cont <- clusterContrasts(cmobj, contrastType="OneAgainstAll")$contrastMatrix
+  X <- as.factor(primaryCluster(cmobj))
   design <- model.matrix(~X - 1)
   head(design)
   message(colnames(cont))
