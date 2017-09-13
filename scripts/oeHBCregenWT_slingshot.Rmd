@@ -42,7 +42,7 @@ keepcl <- !(mergeCl %in% c(-1, 10)) & !(colnames(cmobj) %in% exclude_wtlowqc) # 
 
 pcax <- prcomp(t(transform(cmobj)[,keepcl]))
 clus.labels <- factor(mergeCl[keepcl])
-expt <- colData(cmobj)$expt[keepcl]
+expt <- droplevels(colData(cmobj)$expt[keepcl])
 X <- pcax$x
 names(expt) <- names(clus.labels) <- rownames(X)
 ```
