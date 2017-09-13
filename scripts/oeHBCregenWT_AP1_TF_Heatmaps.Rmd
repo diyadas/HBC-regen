@@ -26,21 +26,20 @@ load(file=file.path(clust_dir, paste0(expt_str, "_lineageData.Rda")))
 
 cc <- c(brewer.pal(8,"Dark2")[-c(2,3,5)],brewer.pal(12,"Paired")[c(1,2,8,10,9)],brewer.pal(12,"Set3")[c(7,8,12)], brewer.pal(8, "Pastel2")[8], brewer.pal(11,"BrBG")[11], brewer.pal(11,"PiYG")[1], "cyan", "darkblue","darkorchid2", "brown1", "springgreen1", "deepskyblue4", "darkolivegreen","antiquewhite2","azure", "cornflowerblue","blue","chartreuse","darkolivegreen3","darkorange3","deeppink4","darkred","darksalmon")
 colpal <- cc[c(1,17,2,29,30,14,9,12,26,13,8)]
-ccn2 <- colpal[-c(3,4,8)] 
-ccs2 <- colpal[-c(2,4,5,7,8,10,11)]
+ccn <- colpal[-c(3,4,8)] 
+ccs <- colpal[-c(2,4,5,7,8,10,11)]
 
 ```
 
 ```{r AP1_TF_Heatmap}
-breakw <- c(min(nlm2), seq(0, quantile(nlm2[nlm2 > 0], .99, na.rm = TRUE), length = 50), max(nlm2))
+breakw <- c(min(nlm), seq(0, quantile(nlm[nlm > 0], .99, na.rm = TRUE), length = 50), max(nlm))
 
-
-ap1 <- intersect(read.table("../ref/genesAP1.txt")$V1, rownames(nlm2))
+ap1 <- intersect(read.table("../ref/genesAP1.txt")$V1, rownames(nlm))
 pdf(file=file.path(viz_dir, paste0(expt_str, "_NL_AP1genes.pdf")), height=8.5, width=11)
-plotHeatmap(nlm2[ap1,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=nlclusters2), clusterLegend=list(clusters=ccn2), main=paste("NL_AP1genes"))
+plotHeatmap(nlm[ap1,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=nlclusters), clusterLegend=list(clusters=ccn), main=paste("NL_AP1genes"))
 dev.off()
 pdf(file=file.path(viz_dir, paste0(expt_str, "_SL_AP1genes.pdf")), height=8.5, width=11)
-plotHeatmap(slm2[ap1,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=slclusters2), clusterLegend=list(clusters=ccs2), main=paste("SL_AP1genes"))
+plotHeatmap(slm[ap1,], clusterSamples=FALSE, clusterFeatures=TRUE, breaks=breakw, sampleData=data.frame(clusters=slclusters), clusterLegend=list(clusters=ccs), main=paste("SL_AP1genes"))
 dev.off()
 
 ```
