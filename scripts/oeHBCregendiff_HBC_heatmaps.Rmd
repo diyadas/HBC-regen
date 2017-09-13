@@ -65,7 +65,7 @@ regennames <- names(clus.labels_regen)[clus.labels_regen %in% c(9,6,8,4,1)]
 hbcsamples <- unique(c(HBCdiffnames, regennames))
 
 # load combined data
-cmobj <- get(load(file.path(clust_dir, paste0(expt_str, "_none_fq_ruv1_nobio_nobatch_cm_hier_2.Rda"))))
+cmobj <- get(load(file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda"))))
 
 hbc_obj <- cmobj[,match(hbcsamples,colnames(cmobj),nomatch = 0)]
 hbc_clus.labels <- rep(0, ncol(hbc_obj)); names(hbc_clus.labels) <- colnames(hbc_obj)
