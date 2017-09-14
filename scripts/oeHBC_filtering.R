@@ -71,12 +71,6 @@ eSet <- eSet[geneidx,]
 
 message(paste("After removing ERCC:",dim(eSet)[1], "genes,", dim(eSet)[2], "samples"))
 
-# Select only transcripts above 0 TPM in at least one sample and no NaN in any sample
-is.expressed.sc <- rowMeans(exprs(eSet)) > 0
-eSet <- eSet[which(is.expressed.sc),]
-
-message(paste("After removing 0TPM:",dim(eSet)[1], "genes,", dim(eSet)[2], "samples"))
-
 # Remove transcripts with NA counts
 is.counts.na <- apply(assayData(eSet)$counts_table, 1, function(x) any(is.na(x)))
 eSet <- eSet[which(!is.counts.na),]
