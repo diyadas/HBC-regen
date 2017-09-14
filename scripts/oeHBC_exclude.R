@@ -6,6 +6,7 @@ library(SummarizedExperiment)
 out_dir <- "../output/clust/oeHBC"
 
 normfiles=list.files(path = out_dir, pattern=glob2rx("oeHBC_*fq*_se.Rda"))
+print(normfiles)
 
 reg3g_list_all = list()
 omp_cyp_list_all = list()
