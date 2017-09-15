@@ -46,7 +46,7 @@ load("../ref/oeHBCregenWT_exclude_lowqc.Rda")
 HBCregennames <- names(clus.labels_regen)[clus.labels_regen %in% c(9,6,8,4,1)]
 
 # load combined data and exclude low quality cells
-cmobj <- get(load(file.path(clust_dir, paste0(expt_str,"_none_fq_ruv1_nobio_nobatch_hier_2.Rda"))))
+cmobj <- get(load(file.path(clust_dir, paste0(expt_str,"_none_fq_ruv1_nobio_nobatch_hier_cons.Rda"))))
 cmobj <- cmobj[,!(colnames(cmobj) %in% exclude_wtlowqc)]
 
 oeHBC_clus.labels <- rep(0, ncol(cmobj)); names(oeHBC_clus.labels) <- colnames(cmobj)
