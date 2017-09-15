@@ -43,15 +43,23 @@ singleGPlot <- function(matrix,geneList,clusters, colorVector,lineage){
 ###########################################################
 
 #####-----Figure 3A: developmental order line plots for each lineage
-NLPT <- rep.int(0,353)
-names(NLPT) <- colnames(nlm)
-plot(NLPT,col=colpal[nlclusters],xlab=paste0("NL Developmental Order"), ylab="log2 counts", pch=15) 
-SLPT <- rep.int(0,348)
-names(SLPT) <- colnames(slm)
-plot(SLPT,col=colpal[slclusters],xlab=paste0("SL Developmental Order"), ylab="log2 counts", pch=15) 
-HLPT <- rep.int(0,341)
-names(HLPT) <- colnames(hlm)
-plot(HLPT,col=colpal[hlclusters],xlab=paste0("HL Developmental Order"), ylab="log2 counts", pch=15) 
+NLdevO <- rep.int(0,353)
+names(NLdevO) <- colnames(nlm)
+pdf(file=file.path(viz_dir,paste0(expt_str, "_NLdevOrderLinePlots.pdf")),width=4.5, height=3)
+plot(NLdevO,col=colpal[nlclusters],xlab=paste0("NL Developmental Order"), axes=FALSE, pch=15) 
+dev.off()
+
+SLdevO <- rep.int(0,348)
+names(SLdevO) <- colnames(slm)
+pdf(file=file.path(viz_dir,paste0(expt_str, "_SLdevOrderLinePlots.pdf")),width=4.5, height=3)
+plot(SLdevO,col=colpal[slclusters],xlab=paste0("SL Developmental Order"), axes=FALSE, pch=15) 
+dev.off()
+
+HLdevO <- rep.int(0,341)
+names(HLdevO) <- colnames(hlm)
+pdf(file=file.path(viz_dir,paste0(expt_str, "_HLdevOrderLinePlots.pdf")),width=4.5, height=3)
+plot(HLdevO,col=colpal[hlclusters],xlab=paste0("HL Developmental Order"), axes=FALSE, pch=15) 
+dev.off()
 
 ###---Lists of genes for gene expression plots
 ListFigureS4C <- c("Krt16", "Lgals1", "Hopx")
