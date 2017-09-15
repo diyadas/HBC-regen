@@ -40,16 +40,13 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 ### Clustering
 6. Cluster samples in each experiment (`oeHBC_clust.R`)
 
-
-
---- updated to this point ---
-
-
 ### Clustering, Developmental Ordering, Differential Expression
 `oeHBCregen_4b_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
 8. Developmental ordering with slingshot (`oeHBCregenWT_slingshot.Rmd` & `oeHBCregenWTKO_slingshot.Rmd`)
 9. Differential gene expression using limma, along each lineage (`oeHBCregenWT_DE.Rmd`)
+
+--- updated to this point ---
 
 `oeHBCregenWT_5_GSEA.sh`:
 
@@ -61,13 +58,15 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 
 13. Visualizations based on cell clustering (heatmap of marker genes, tSNE plots, PCA pairs plot, cluster & experimental condition bubble plots; `oeHBCregen_clusterPlots.Rmd` & `oeHBCdiffregen_clusterPlots.Rmd`)
 12. Visualizations incorporating developmental ordering (3D-PCA plots, dot plots; `oeHBCregen_devorderplots.Rmd`)
-12. Heatmaps of cell cycle genes in the neuronal and sustentacular lineages (`oeHBCregen_cellCycle.Rmd`)
-12. Heatmaps of differentially expressed transcription factors by lineage (`oeHBCregen_tf_hm.R`)
 12. Transcription factor co-expression, network analysis, and visualizations (`oeHBCregen_tf.Rmd`)
-13. Plots of individual or pairs of genes in developmental order (`oeHBCregen_genePlots.Rmd`)
-14. Barplots of GSEA, showing top 100 enriched gene sets per cluster (`oeHBCregen_GSEAplots.Rmd`)
+13. Plots of individual or pairs of genes in developmental order (`oeHBCregen_genePlots.Rmd` & `oeHBCregen_genePairsPlots.Rmd`)
 15. Volcano plots of differentially expressed genes (`oeHBCregen_volcano.R`)
 16. Olfactory Receptor (OR) gene and OR regulation associated gene expression plots (`oeHBCregen_OR.R`)
+
+### List of files to look into
+oeHBCregenWTKO_DE.Rmd
+oeHBCregenWT_AP1_TF_Heatmaps.Rmd
+
 
 ### Dependencies/useful R packages:
 
