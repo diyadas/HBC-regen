@@ -64,11 +64,11 @@ expt_str <- "oeHBCregenWT"
 out_dir <- file.path("../output/clust", expt_str)
 viz_dir <- file.path("../output/viz", expt_str)
 
-load(file.path(out_dir, paste0(expt_str, "_lineageData2.Rda")))
+load(file.path(out_dir, paste0(expt_str, "_lineageData.Rda")))
 load(file.path(out_dir, paste0(expt_str,"_PCA.Rda")))
 
-nlm_tf <- nlm2[intersect(unlist(read.table("../ref/ATFDB_mm_TF.txt")),rownames(nlm2)),]
-slm_tf <- slm2[intersect(unlist(read.table("../ref/ATFDB_mm_TF.txt")), rownames(slm2)),]
+nlm_tf <- nlm[intersect(unlist(read.table("../ref/ATFDB_mm_TF.txt")),rownames(nlm)),]
+slm_tf <- slm[intersect(unlist(read.table("../ref/ATFDB_mm_TF.txt")), rownames(slm)),]
 ```
 
 To select a reasonable threshold, we scramble the entries of the matrix and we compute the maximum correlation.
@@ -91,8 +91,8 @@ print(mm)
 # DE TFs - OneVAll
 
 ```{r}
-de_NL <- read.table(paste0("../output/DE/",expt_str,"/NL_DE_oneVall_limma_500.txt"), stringsAsFactors = FALSE)
-de_SL <- read.table(paste0("../output/DE/",expt_str,"/SL_DE_oneVall_limma_500.txt"), stringsAsFactors = FALSE)
+de_NL <- read.table(paste0("../output/DE/",expt_str,"/oeHBCregenWT_NL_DE_oneVall_500.txt"), stringsAsFactors = FALSE)
+de_SL <- read.table(paste0("../output/DE/",expt_str,"/oeHBCregenWT_SL_DE_oneVall_500.txt"), stringsAsFactors = FALSE)
 
 tf_heatmap <- function(mat_tf, de, col.pal, name){
 var_tf <- mat_tf[intersect(de$Feature, rownames(mat_tf)),]
@@ -173,8 +173,10 @@ tf_network <- function(mat_tf, de, col.pal, clus.labels, name){
   V(graph)$color <- col.pal[cols]
   plot(graph, layout=coords, vertex.label.cex=.5, vertex.label.color="black", main="Color-coded by cluster label")
   dev.off()
+  
+  write.table(data.frame(TF= rownames(tfs), Cluster_max = levels(clus.labels)[cols]), file=file.path(viz_dir, paste0(expt_str,"_DE_OneVall_TFlabels",name, Sys.Date(),".txt")), quote=F, col.names=F, row.names=F) 
 }
 
-tf_network(nlm_tf, de_NL, col.pal, nlclusters2, "Neur")
-tf_network(slm_tf, de_SL, col.pal, slclusters2, "Sus")
+tf_network(nlm_tf, de_NL, col.pal, nlclusters, "Neur")
+tf_network(slm_tf, de_SL, col.pal, slclusters, "Sus")
 ```
