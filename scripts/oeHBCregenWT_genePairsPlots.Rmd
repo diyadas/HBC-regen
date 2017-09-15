@@ -47,7 +47,7 @@ listFigure4B <- c("Top2a", "Ccnb1", "Cdk1", "Rrm2")
 genePairsPlot <- function(mat, geneList, clusterVector, colorVector, geneListTitle) {
   geneList <- as.character(geneList)
   pdf(file=file.path(viz_dir, paste0(expt_str, "_genePairsPlot_", geneListTitle,".pdf")), width=2*length(geneList), height=2*length(geneList))
-  pairs(t(mat[geneList,]), col=colorV[clusterVector], asp=1, pch=19)
+  pairs(t(mat[geneList,]), col=colorVector[clusterVector], asp=1, pch=19)
   dev.off()
 }
 #####
