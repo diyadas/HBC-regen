@@ -14,10 +14,10 @@ output:
 ```{r options, echo=FALSE, results="hide",mesasge=FALSE, error=FALSE,include=FALSE}
 knitr::opts_chunk$set(fig.align="center", cache=TRUE, error=FALSE, message=FALSE, warning=FALSE, results="hide")
 
-library(slingshot); library(clusterExperiment); library(RColorBrewer); library(rgl); library(rglwidget); library(R.utils); library(Rtsne); library(scales); library(ggplot2);
+library(clusterExperiment); library(RColorBrewer); library(R.utils); library(Rtsne); library(scales); library(ggplot2);
 library(limma)
 library(edgeR)
-library(calibrate)
+
 NMF::nmf.options(grid.patch=TRUE)
 
 expt_str <- "oeHBCdiffregen"
@@ -75,7 +75,44 @@ oeHBC_clus.labels_regen <- rep(0, ncol(cmobj)); names(oeHBC_clus.labels_regen) <
 oeHBC_clus.labels_regen[names(clus.labels_regen)] <- clus.labels_regen
 oeHBC_clus.labels_regen <- factor(oeHBC_clus.labels_regen) 
 
-save(cmobj, oeHBC_clus.labels, file=file.path(clust_dir, paste0(esh, "_cmmerged.Rda")))
+save(cmobj, oeHBC_clus.labels, file=file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
+
+
+```
+
+```{r DE_for_heatmap}
+
+######------DE genes for heatmap
+
+#####-----Differential expression with limma voom on post-SCONE normalized counts; note that I add 0.5 and voom will add 0.5 more - #####otherwise, there are issues with normalized counts with values < -0.5.
+pairsDE100 <-getBestFeatures(assay(cmobj)+0.5, cmobj@clusterMatrix[,1], contrastType="Pairs", number=100, contrastAdj="All", p.value=0.01, isCount=TRUE)
+write.table(pairsDE100, file.path(DE_dir, paste0(expt_str, "_pairs_100_voom.txt")), quote=FALSE, sep="\t")
+
+#####-----To compare the regeneration HBC activated cluster (cl5) to the p63 cKO differentiation HBC transition cluster (cl19)
+cl5vscl19 <- pairsDE100[pairsDE100$Contrast == "X19-X5",]
+cl5vscl19 <- cl5vscl19[abs(cl5vscl19$logFC) > 1, ]
+
+#save(cl5vscl19, file = file.path(DE_dir, paste0(expt_str, "_pairsDE_cl5Vscl19.Rda")))
+#write.table(cl5vscl19, file.path(DE_dir, paste0(expt_str, "pairsDEcl5v19.txt")), quote=FALSE, sep="\t")
+
+HBCdePairs <- cl5vscl19$Feature[1:50]
+
+```
+
+```{r HBC_heatmap}
+cluster_ord <- c("rest/renewedHBC", "renewHBC2", "renewHBC1", "actHBC1","actHBC2","transHBC1","transHBC2")
+oeHBCregendiff_Mat <- transform(cmobj)
+hbc_clus.labels <- oeHBC_clus.labels[oeHBC_clus.labels %in% cluster_ord]
+hbc_clus.labels <- hbc_clus.labels[order(match(hbc_clus.labels, cluster_ord))]
+
+breakw <- c(min(oeHBCregendiff_Mat), seq(0, quantile(oeHBCregendiff_Mat[oeHBCregendiff_Mat > 0], .99, na.rm = TRUE), length = 50), max(oeHBCregendiff_Mat)) 
+
+colpalH <- c("cornflowerblue", "#CCCCCC", "#FCCDE5", "darkolivegreen3", "#1B9E77", "#E6AB02",        "#A6CEE3")
+
+###---Used the 50 pairwise DE genes for Figure 3
+pdf(file=file.path(viz_dir, paste0(expt_str, "_HBC_pairwise50DE_heatmap.pdf")), height=8.5, width=11)
+plotHeatmap(oeHBCregendiff_Mat[HBCdePairs,names(hbc_clus.labels)], clusterSamples=F, clusterFeatures=T, breaks=breakw, sampleData=data.frame(clusters=hbc_clus.labels, expt=colData(cmobj)[names(hbc_clus.labels),2], batch=colData(cmobj)[names(hbc_clus.labels),1]), clusterLegend=list(clusters=colpalH, expt=cole, batch=cc), main=paste(expt_str," HBCs by pair-wise DE")) 
+dev.off()
 
 ```
 
