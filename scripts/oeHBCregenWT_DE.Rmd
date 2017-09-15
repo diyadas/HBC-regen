@@ -27,6 +27,8 @@ library(clusterExperiment); library(limma)
 
 load(file=file.path(clust_dir, paste0(expt_str, "_lineageData.Rda")))
 load(file=file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
+load(file=file.path(clust_dir, paste0(expt_str, "_PCA.Rda")))
+
 
 Xmat <- transform(cmobj)
 
