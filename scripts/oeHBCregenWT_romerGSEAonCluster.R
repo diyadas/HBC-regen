@@ -8,14 +8,14 @@ library(biomaRt);library(parallel);library(limma); library(optparse); library(cl
 printf <- function(...) cat(sprintf(...))
 
 option_list <- list(
-  make_option("--expt_str", default="", type="character", help="short form, e.g. E4c2b"),
+  make_option("--expt", default="", type="character", help="short form, e.g. E4c2b"),
   make_option("--ncores", default="1", type="double"),
   make_option("--nrot", default="1", type="double")
 )
 
 opt <- parse_args(OptionParser(option_list=option_list))
 nrot <- opt$nrot
-expt_str <- opt$expt_str
+expt_str <- opt$expt
 
 clust_dir = file.path("../output/clust", expt_str)
 DE_dir <- file.path("../output/DE", expt_str)
