@@ -52,6 +52,7 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 9. Differential gene expression using limma, along each lineage (`oeHBCregenWT_DE.Rmd`)
 
 `oeHBCregenWT_5_GSEA.sh`:
+
 11. Preparation of gene sets for Gene Set Enrichment Analysis (GSEA; `oeHBCregenWT_GSEAprep.Rmd`)
 11. GSEA based on cell clustering using limma romer (`oeHBCregenWT_romerGSEA.R`)
 
