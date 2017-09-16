@@ -26,6 +26,9 @@ viz_dir <- file.path("../output/viz", expt_str)
 DE_dir <- file.path("../output/DE", expt_str)
 
 col.pal <- c("gray95", "cornflowerblue", "#CCCCCC", "#FCCDE5", "darkolivegreen3", "#1B9E77", "#E6AB02", "#A6CEE3")
+
+col.pal <- c("gray95",  "#1B9E77", "darkolivegreen3", "#FCCDE5" , "cornflowerblue", "#CCCCCC", "#E6AB02", "#A6CEE3")
+
 cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(5, "Reds"), brewer.pal(12, "Paired")[10])
 col.src <- cole[c(1,11,6)]
 ```
@@ -75,6 +78,9 @@ oeHBC_clus.labels_regen <- rep(0, ncol(cmobj)); names(oeHBC_clus.labels_regen) <
 oeHBC_clus.labels_regen[names(clus.labels_regen)] <- clus.labels_regen
 oeHBC_clus.labels_regen <- factor(oeHBC_clus.labels_regen) 
 
+cluster_ord <- c("rest/renewedHBC", "renewHBC2", "renewHBC1", "actHBC1","actHBC2","transHBC1","transHBC2")
+oeHBC_clus.labels <- factor(oeHBC_clus.labels, levels=c(0,cluster_ord))
+
 save(cmobj, oeHBC_clus.labels, file=file.path(clust_dir, paste0(expt_str, "_cmmerged.Rda")))
 
 
@@ -100,14 +106,13 @@ HBCdePairs <- cl5vscl19$Feature[1:50]
 ```
 
 ```{r HBC_heatmap}
-cluster_ord <- c("rest/renewedHBC", "renewHBC2", "renewHBC1", "actHBC1","actHBC2","transHBC1","transHBC2")
 oeHBCregendiff_Mat <- transform(cmobj)
 hbc_clus.labels <- oeHBC_clus.labels[oeHBC_clus.labels %in% cluster_ord]
 hbc_clus.labels <- hbc_clus.labels[order(match(hbc_clus.labels, cluster_ord))]
 
 breakw <- c(min(oeHBCregendiff_Mat), seq(0, quantile(oeHBCregendiff_Mat[oeHBCregendiff_Mat > 0], .99, na.rm = TRUE), length = 50), max(oeHBCregendiff_Mat)) 
 
-colpalH <- c("cornflowerblue", "#CCCCCC", "#FCCDE5", "darkolivegreen3", "#1B9E77", "#E6AB02",        "#A6CEE3")
+colpalH <- c("cornflowerblue", "#CCCCCC", "#FCCDE5", "darkolivegreen3", "#1B9E77", "#E6AB02", "#A6CEE3")
 
 ###---Used the 50 pairwise DE genes for Figure 3
 pdf(file=file.path(viz_dir, paste0(expt_str, "_HBC_pairwise50DE_heatmap.pdf")), height=8.5, width=11)
@@ -127,7 +132,6 @@ rtsne_fx <- function(cmobj, clusters,ngenes=500, perplexity=perplexity, max_iter
   return(tsne_data)
 }
 
-oeHBC_clus.labels <- E5_hbc_clus.labels
 iter <- 1000
 perplexity <- 20
 tsne_data <- rtsne_fx(cmobj,oeHBC_clus.labels,ngenes=nrow(cmobj), perplexity = perplexity, max_iter = iter)
@@ -135,7 +139,7 @@ tsne_data <- rtsne_fx(cmobj,oeHBC_clus.labels,ngenes=nrow(cmobj), perplexity = p
 ```
 #### t-SNE by cluster
 ```{r tsne-clus}
-svg(file.path(viz_dir,paste0("oeHBC_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+svg(file.path(viz_dir,paste0("oeHBCdiffregen_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
 plot(tsne_data$Y, col=col.pal[oeHBC_clus.labels], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
 points(tsne_data$Y[oeHBC_clus.labels!=0,], col=col.pal[oeHBC_clus.labels[oeHBC_clus.labels!=0]], pch=19, cex=0.5)
@@ -144,6 +148,7 @@ dev.off()
 ```
 #### t-SNE by experimental condition
 ```{r tsne-expt}
+expt <- cmobj@colData$expt
 src.label <- rep(0, ncol(cmobj)); names(src.label) <- colnames(cmobj)
 src.label[grep("K5ERRY_UI|PI", expt)] <- "Regen"
 src.label[grep("UI|SOX2EGFP",expt)] <- "Diff"
@@ -151,22 +156,22 @@ src.label[expt=="K5ERRY_UI"] <- "Both"
 src.label <- factor(src.label, levels=c("Both","Diff","Regen"))
 
 ## SF3B
-svg(file.path(viz_dir,paste0("oeHBC_source_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+svg(file.path(viz_dir,paste0(expt_str, "_source_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
 plot(tsne_data$Y, col=alpha(col.src,0.5)[src.label],cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="", pch=19)
 dev.off()
 
-expt <- cmobj@colData$expt
+
 col.pal_regen <- c(cole[1:6], rep("grey95", 6))
 col.pal_diff <- c(cole[1], rep("grey95", 5), cole[7:12])
 
-svg(file.path(viz_dir,paste0("oeHBC_regen_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+svg(file.path(viz_dir,paste0(expt_str, "_regen_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
 plot(tsne_data$Y, col=col.pal_regen[expt[colnames(cmobj)]], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
 points(tsne_data$Y[grepl("K5ERRY",expt),], col=col.pal_regen[expt][grepl("K5ERRY",expt)], pch=19, cex=0.5)
 dev.off()
 
-svg(file.path(viz_dir,paste0("oeHBC_diff_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
+svg(file.path(viz_dir,paste0(expt_str, "_diff_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
 plot(tsne_data$Y, col=col.pal_diff[expt], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
 points(tsne_data$Y[!grepl("PI",expt),], col=col.pal_diff[expt][!grepl("PI",expt)], pch=19, cex=0.5)
@@ -177,8 +182,8 @@ dev.off()
 t1 <- theme(plot.background=element_blank(), panel.grid.minor=element_blank(), panel.background=element_blank(),axis.ticks=element_blank(), legend.title=element_blank(), legend.background=element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),legend.key= element_rect(fill="white"), panel.border = element_rect(fill=NA,colour = "black"),axis.line=element_blank(),aspect.ratio=1)
 t2 <- theme(axis.title.x=element_blank(), axis.title.y=element_blank(),  plot.title=element_blank()) 
 
-CC40 <- read.table("~/gitp/oe-scrnaseq/ref/cellCycle40.txt")$V1
-UPR <- unlist(read.table("~/normscone/ref/HM_UPR.txt"))
+CC40 <- unlist(read.table("../ref/cellCycle40.txt"))
+UPR <- unlist(read.table("../ref/HM_UPR.txt"))
 WR8 <- c("Krt6a", "Krt16","Dmkn", "Sbsn", "Sprr1a","Krtdap","Sprr2a3","Hbegf")
 Hopx <- "Hopx"
 
