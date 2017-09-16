@@ -148,7 +148,7 @@ dev.off()
 ```
 #### t-SNE by experimental condition
 ```{r tsne-expt}
-expt <- cmobj@colData$expt
+expt <- droplevels(cmobj@colData$expt)
 src.label <- rep(0, ncol(cmobj)); names(src.label) <- colnames(cmobj)
 src.label[grep("K5ERRY_UI|PI", expt)] <- "Regen"
 src.label[grep("UI|SOX2EGFP",expt)] <- "Diff"
@@ -167,7 +167,7 @@ col.pal_diff <- c(cole[1], rep("grey95", 5), cole[7:12])
 
 svg(file.path(viz_dir,paste0(expt_str, "_regen_tsne_points_",Sys.Date(),".svg")), width=3.25,height=3.25)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
-plot(tsne_data$Y, col=col.pal_regen[expt[colnames(cmobj)]], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
+plot(tsne_data$Y, col=col.pal_regen[expt], cex=0.5,xaxt='n',yaxt='n',ylab="",xlab="")
 points(tsne_data$Y[grepl("K5ERRY",expt),], col=col.pal_regen[expt][grepl("K5ERRY",expt)], pch=19, cex=0.5)
 dev.off()
 
@@ -185,7 +185,6 @@ t2 <- theme(axis.title.x=element_blank(), axis.title.y=element_blank(),  plot.ti
 CC40 <- unlist(read.table("../ref/cellCycle40.txt"))
 UPR <- unlist(read.table("../ref/HM_UPR.txt"))
 WR8 <- c("Krt6a", "Krt16","Dmkn", "Sbsn", "Sprr1a","Krtdap","Sprr2a3","Hbegf")
-Hopx <- "Hopx"
 
 plotscaledtsne <- function(glist) {
 scaled <- t(scale(t(transform(cmobj)[intersect(glist, rownames(cmobj)),])))
@@ -195,13 +194,10 @@ dat <- data.frame(x = tsne_data$Y[,1], y = tsne_data$Y[,2], z = z)
 par(mar=c(2,2,1,1), mfrow=c(1,1))
 
 p <- ggplot(dat, aes(x, y, colour = z)) + geom_point(cex=0.5)
-pdf(file.path(viz_dir,paste0("oeHBC_", deparse(substitute(glist)), "_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
+pdf(file.path(viz_dir,paste0(expt_str, "_", deparse(substitute(glist)), "_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
 print(p + t1+t2+scale_colour_gradient2(low = "#053061", mid = "grey95", high = "#67001F"))
 cat("\n\n")
 dev.off()
-
-#ggsave(file.path(viz_dir,paste0("oeHBC_", deparse(substitute(glist)), "_tsne_points_",Sys.Date(),".svg")), width=3.5,height=3.25)
-
 }
 
 plotscaledtsne(CC40)
@@ -209,8 +205,7 @@ plotscaledtsne(UPR)
 plotscaledtsne(WR8)
 plotscaledtsne(Hopx)
 
-glist <- c("Trp63","Krt5","Krt14","Krt6a","Krt16", "Sprr1a","Krtdap","Lgals1","Hbegf","Gpx2","Il33")
-
+glist <- "Hopx"
 lapply(glist, function(gene){
   z <- transform(cmobj)[gene,]
   allplots <- NULL
@@ -218,37 +213,11 @@ lapply(glist, function(gene){
   p <- ggplot(dat, aes(x, y, colour = z)) + geom_point(cex=0.5)
   p <- p + t1+t2+scale_colour_gradient(low = "#FFFFCC", high = "#000000")
   
-  pdf(file.path(viz_dir,paste0("oeHBC_",gene,"_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
+  pdf(file.path(viz_dir, paste0(expt_str, "_", gene,"_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
   par(mar=c(2,2,1,1), mfrow=c(1,1))
   print(p)
   cat("\n\n")
   dev.off()
   })
 
-```
-```{r de}
-counts <- assay(cmobj)
-counts_log <- transform(cmobj)
-oeHBC_clus.labelsn <- as.numeric(oeHBC_clus.labels)
-
-getBestNFeatures <- function(counts, clusterVector, contrastType, n, isCount=FALSE){
-  feat <- getBestFeatures(counts, clusterVector, contrastType=contrastType, number=n, contrastAdj="All", p.value=0.05, isCount=isCount)
-  adj <- ifelse(isCount, "voom", "limma")
-  filename <- paste0(expt_str, "_", contrastType, n, "_", adj, ".txt")
-  write.table(feat, file.path(DE_dir, filename), quote=FALSE,sep="\t")
-  return(feat)
-}
-
-OneVAll <- getBestNFeatures(counts_log, oeHBC_clus.labelsn, "OneVAll", 50)
-save(OneVAll, file = file.path(DE_dir, paste0(expt_str, "_DE_OneVall_limma.Rda")))
-
-cluster_ord <- levels(oeHBC_clus.labels)
-breakv <- c(min(transform(cmobj)), seq(0, quantile(transform(cmobj)[transform(cmobj) > 0], .99, na.rm = TRUE), length = 50), max(transform(cmobj)))
-expt <- colData(cmobj)$expt
-allclus.labels<- hbc_clus.labels[order(match(hbc_clus.labels,cluster_ord))]
-batch=droplevels(colData(cmobj)[names(allclus.labels),"batch"])
-
-pdf(file=file.path(viz_dir,paste0("oeHBC_DE50_", Sys.Date(), ".pdf")), width=7, height=4)
-plotHeatmap(transform(hbc_obj)[oneVall50_genes,names(allclus.labels)], clusterSamples=FALSE,clusterFeatures=TRUE, breaks=breakv, sampleData=data.frame(clusters=allclus.labels, expt=colData(hbc_obj)[names(allclus.labels), "expt"], batch=batch), clusterLegend=list(clusters=col.pal,expt=cole, batch=bigPalette))
-dev.off()
 ```
