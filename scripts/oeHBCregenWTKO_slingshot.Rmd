@@ -22,7 +22,7 @@ nrm_str <- "none_fq_ruv1_nobio_nobatch"
 out_dir <- file.path("../output/clust", expt_str)
 viz_dir <- file.path("../output/viz", expt_str)
 
-col.pal <- c("#1B9E77", "#B3DE69", "cyan", "#E7298A", "#CCCCCC", "darkorange3","#E6AB02", "#666666", "#6A3D9A", "cornflowerblue", "#CAB2D6", "#FF7F00", "#FFED6F", "brown1")
+col.pal <- c("#1B9E77", "#B3DE69", "cyan", "#E7298A", "#CCCCCC", "darkorange3", "#E6AB02", "#666666", "#6A3D9A", "cornflowerblue", "#CAB2D6", "#FF7F00", "#FFED6F", "brown1")
 cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(6,"Reds"))
 ```
 ### Calculations
@@ -30,10 +30,10 @@ cole <- c(brewer.pal(8, "Blues")[-c(1:2)],brewer.pal(6,"Reds"))
 ```{r merge}
 load(file.path(out_dir,paste0(expt_str,"_",nrm_str, "_hier_cons.Rda")))
 cmobj <- makeDendrogram(cm2,dimReduce="var",ndims=1000)
-cmobj <- mergeClusters(cmobjM, mergeMethod="locfdr", plotType="mergeMethod", cutoff=0.18)
+cmobj <- mergeClusters(cmobj, mergeMethod="locfdr", plotType="mergeMethod", cutoff=0.18)
 
-cmobjM <- makeDendrogram(cmobjM,dimReduce="none", ignoreUnassignedVar=TRUE)
-cmobjM <- mergeClusters(cmobj, mergeMethod="adjP", plotType="mergeMethod", cutoff=0.07)
+cmobjM <- makeDendrogram(cmobj,dimReduce="none", ignoreUnassignedVar=TRUE)
+cmobjM <- mergeClusters(cmobjM, mergeMethod="adjP", plotType="mergeMethod", cutoff=0.07)
 
 clus.labels <- primaryCluster(cmobj); names(clus.labels) <- colnames(cmobj)
 expt <- colData(cmobj)$expt; names(expt) <- colnames(cmobj)
@@ -49,8 +49,7 @@ keepcl <- !(mergeCl %in% c(-1, f,hbc3))
 
 pcax <- prcomp(t(transform(cmobj)[,keepcl]))
 clus.labels_slingshot <- factor(mergeCl[keepcl])
-#oclus.labels <- factor(cmobj@clusterMatrix[,"mergeClusters.1"][keepcl])
-expt <- colData(cmobj)$expt[keepcl]
+expt <- droplevels(colData(cmobj)$expt[keepcl])
 X <- pcax$x
 names(expt) <- names(clus.labels_slingshot) <- rownames(X)
 ```
@@ -61,9 +60,8 @@ keepcl2 <- !(grepl("UI", expt)  & clus.labels_slingshot ==1) & !(clus.labels_sli
 X2 <- X[keepcl2,]
 clus.labels2 <- clus.labels_slingshot[keepcl2]
 expt2 <- expt[keepcl2]
-maxN <- min(table(clus.labels2))-1
 
-clus.labels <- clus.labels[names(clus.labels_slingshot)]
+clus.labels <- factor(clus.labels)[names(clus.labels_slingshot)]
 
 save(X,X2,clus.labels,clus.labels2, expt, expt2, col.pal, cole, keepcl2, keepcl, drop_cl, file=file.path(out_dir, paste0(expt_str,"_PCA.Rda")))
 ```
@@ -75,6 +73,36 @@ lineages <- get_lineages(X2[,1:ndims], clus.labels2, start.clus = Eh, end.clus =
 for (i in 1:ncol(lineages$C)) print(lineages[[i]])
 curves <- get_curves(X2[,1:ndims],clus.labels2,lineages,shrink = 1,extend = "n")
 save(lineages, curves, file=file.path(out_dir, paste0(expt_str, "_slingshot_out.Rda")))
+```
+
+### Plotting data and Slingshot results
+```{r data}
+centers <- t(sapply(levels(clus.labels),function(clID){
+  x.sub <- X[clus.labels == clID,dplot]
+  return(colMeans(x.sub))
+}))
+center.col <- sapply(levels(clus.labels),function(clID){
+  col.pal[clus.labels][which.max(clus.labels == clID)]
+})
+
+merge2map <- function(x){
+cmap <- table(primaryCluster(cmobjM), primaryCluster(cmobj))!=0
+return (colnames(cmap)[cmap[x,]])
+}
+drop_cl2 <- merge2map(as.character(drop_cl))
+centers[drop_cl2,] <- rep(NA,3)
+
+open3d()
+plot3d(X[!keepcl2 & clus.labels!=as.character(drop_cl),1:3],col=col.pal[clus.labels[!keepcl2& clus.labels!=as.character(drop_cl)]],alpha=0.2, pch = 19, cex = 1, size=4, xlab="PC 1", ylab="PC 2", zlab="PC 3", aspect="iso", box=FALSE, axes=FALSE)
+plot3d(X2[,1:3],col=col.pal[clus.labels[keepcl2]],alpha=0.7, pch = 19, cex = 1, size=4, add=TRUE)
+for (i in seq_along(curves)){
+plot3d(curves[[i]]$s[order(curves[[i]]$lambda),1:3],type="l",add=TRUE,lwd=2,col=col.pal[which.max(merge2map(tail(lineages[[i]],1))==levels(clus.labels))])
+}
+plot3d(centers,col=center.col, add=TRUE,size=15)
+axes3d(tick=FALSE)
+par3d(windowRect = c(20, 30, 800, 800))
+rgl.postscript(file.path(viz_dir,paste0(expt_str, "_slingshot_clus_",ndims, "_",Sys.Date(), ".svg")), fmt="svg")
+
 ```
 
 ### Saving slingshot output
@@ -94,27 +122,4 @@ cmobj <- cmobj[, colnames(cmobj) %in% names(clus.labels)]
 cmobjM <- cmobjM[, colnames(cmobjM) %in% names(clus.labels)]
 
 save(cmobj, cmobjM, file=file.path(out_dir, paste0(expt_str, "_cmmerged.Rda")))
-```
-
-### Plotting data and Slingshot results
-```{r data}
-centers <- t(sapply(levels(clus.labels),function(clID){
-  x.sub <- X[clus.labels == clID,dplot]
-  return(colMeans(x.sub))
-}))
-center.col <- sapply(levels(clus.labels),function(clID){
-  col.pal[clus.labels][which.max(clus.labels == clID)]
-})
-
-open3d()
-plot3d(X[!keepcl2,1:3],col=col.pal[clus.labels[!keepcl2]],alpha=0.2, pch = 19, cex = 1, size=4, xlab="PC 1", ylab="PC 2", zlab="PC 3", aspect="iso", box=FALSE, axes=FALSE)
-plot3d(X2[,1:3],col=col.pal[clus.labels[keepcl2]],alpha=0.7, pch = 19, cex = 1, size=4, add=TRUE)
-for (i in seq_along(curves)){
-plot3d(curves[[i]]$s[order(curves[[i]]$lambda),1:3],type="l",add=TRUE,lwd=2,col=col.pal[which.max(tail(lineages[[i]],1)==levels(clus.labels))])
-}
-plot3d(centers,col=center.col, add=TRUE,size=15)
-axes3d(tick=FALSE)
-par3d(windowRect = c(20, 30, 800, 800))
-rgl.postscript(file.path(viz_dir,paste0(expt_str, "_slingshot_clus_",ndims, "_",Sys.Date(), ".svg")), fmt="svg")
-
 ```
