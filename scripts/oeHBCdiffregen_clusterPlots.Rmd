@@ -211,7 +211,7 @@ lapply(glist, function(gene){
   allplots <- NULL
   dat <- data.frame(x = tsne_data$Y[,1], y = tsne_data$Y[,2], z = z)
   p <- ggplot(dat, aes(x, y, colour = z)) + geom_point(cex=0.5)
-  p <- p + t1+t2+scale_colour_gradient(low = "#FFFFCC", high = "#000000")
+  p <- p + t1+t2+scale_colour_gradient2(low = "#053061", mid = "grey95", high = "#67001F")
   
   pdf(file.path(viz_dir, paste0(expt_str, "_", gene,"_tsne_points_",Sys.Date(),".pdf")), width=3.5,height=3.25)
   par(mar=c(2,2,1,1), mfrow=c(1,1))
