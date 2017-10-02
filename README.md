@@ -61,8 +61,8 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 15. Volcano plots of differentially expressed genes (`oeHBCregen_volcano.R`)
 16. Olfactory Receptor (OR) gene and OR regulation associated gene expression plots (`oeHBCregen_OR.R`)
 
-###Motif Analysis
-17. Look for transcription factor motifs in the top 1000 most enriched genes in the activated HBC1 cluster relative to resting HBCs ('oeHBC1_findMotif.sh')
+### Motif Analysis
+17. Look for transcription factor motifs in the top 1000 most enriched genes in the activated HBC1 cluster relative to resting HBCs (`oeHBC1_findMotif.sh`)
 
 ### Dependencies/useful R packages:
 
