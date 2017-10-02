@@ -61,11 +61,6 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 15. Volcano plots of differentially expressed genes (`oeHBCregen_volcano.R`)
 16. Olfactory Receptor (OR) gene and OR regulation associated gene expression plots (`oeHBCregen_OR.R`)
 
-### List of files to look into
-oeHBCregenWTKO_DE.Rmd
-oeHBCregenWT_AP1_TF_Heatmaps.Rmd
-
-
 ### Dependencies/useful R packages:
 
 - SCONE (normalization): https://github.com/YosefLab/scone
