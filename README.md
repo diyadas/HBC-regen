@@ -41,20 +41,18 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 6. Cluster samples in each experiment (`oeHBC_clust.R`)
 
 ### Clustering, Developmental Ordering, Differential Expression
-`oeHBCregen_4b_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
+`oeHBC_4b_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
 8. Developmental ordering with slingshot (`oeHBCregenWT_slingshot.Rmd` & `oeHBCregenWTKO_slingshot.Rmd`)
 9. Differential gene expression using limma, along each lineage (`oeHBCregenWT_DE.Rmd`)
 
---- updated to this point ---
-
-`oeHBCregenWT_5_GSEA.sh`:
+`oeHBC_5_GSEA.sh`:
 
 11. Preparation of gene sets for Gene Set Enrichment Analysis (GSEA; `oeHBCregenWT_GSEAprep.Rmd`)
 11. GSEA based on cell clustering using limma romer (`oeHBCregenWT_romerGSEA.R`)
 
 ### Visualizations
-`oeHBCregen_3_viz.sh` performs the following analyses, by calling various R scripts (given in parentheses):
+`oeHBC_6_viz.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
 13. Visualizations based on cell clustering (heatmap of marker genes, tSNE plots, PCA pairs plot, cluster & experimental condition bubble plots; `oeHBCregen_clusterPlots.Rmd` & `oeHBCdiffregen_clusterPlots.Rmd`)
 12. Visualizations incorporating developmental ordering (3D-PCA plots, dot plots; `oeHBCregen_devorderplots.Rmd`)
@@ -62,11 +60,6 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 13. Plots of individual or pairs of genes in developmental order (`oeHBCregen_genePlots.Rmd` & `oeHBCregen_genePairsPlots.Rmd`)
 15. Volcano plots of differentially expressed genes (`oeHBCregen_volcano.R`)
 16. Olfactory Receptor (OR) gene and OR regulation associated gene expression plots (`oeHBCregen_OR.R`)
-
-### List of files to look into
-oeHBCregenWTKO_DE.Rmd
-oeHBCregenWT_AP1_TF_Heatmaps.Rmd
-
 
 ### Dependencies/useful R packages:
 
