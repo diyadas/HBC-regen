@@ -1,9 +1,9 @@
 # HBC-regen
 Code and resources related to the analysis of regeneration in the olfactory epithelium
 
-Below are the R scripts for analyzing the single-cell RNA-seq data from HBC stem cells of the olfactory epithelium, presented in the following manuscript, in preparation:
+Below are the R scripts for analyzing the single-cell RNA-seq data from HBC stem cells of the olfactory epithelium, presented in the following manuscript:
 
-Gadye L\*, Das D\*, Sanchez MA\*, Street KN, Baudhuin A, Wagner A, Cole MB, Choi YG, Yosef N, Purdom E, Dudoit S, Risso D, Ngai J, Fletcher RB\*. (\* equal contribution)
+Gadye L\*, Das D\*, Sanchez MA\*, Street KN, Baudhuin A, Wagner A, Cole MB, Choi YG, Yosef N, Purdom E, Dudoit S, Risso D, Ngai J, Fletcher RB. Identification of activated stem cell states unique to regeneration in the olfactory epithelium. (\* equal contribution)
 
 The data are available on GEO in [GSE99251](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99251) and [GSE95601](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE95601).
 
