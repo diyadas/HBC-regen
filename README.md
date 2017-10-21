@@ -36,11 +36,12 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 5. Create SummarizedExperiment object for each experiment (`oeHBCregen_makeSE_expt.R`)
 
 
-`oeHBC_4_clust.sh` performs the following:
-### Clustering
-6. Cluster samples in each experiment (`oeHBC_clust.R`)
 
 ### Clustering, Developmental Ordering, Differential Expression
+`oeHBC_4_clust.sh` performs the following:
+
+6. Cluster samples in each experiment (`oeHBC_clust.R`)
+
 `oeHBC_4b_devO_DE.sh` performs the following analyses, by calling various R scripts (given in parentheses):
 
 8. Developmental ordering with slingshot (`oeHBCregenWT_slingshot.Rmd` & `oeHBCregenWTKO_slingshot.Rmd`)
