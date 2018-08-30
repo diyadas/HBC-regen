@@ -63,10 +63,10 @@ In project directory, run `mkdir -p output/{clust,data,romer,viz,DE,EDA}/oeHBCre
 16. Olfactory Receptor (OR) gene and OR regulation associated gene expression plots (`oeHBCregen_OR.R`)
 
 ### Motif Analysis
-17. Look for transcription factor motifs in the top 1000 most enriched genes in the activated HBC1 cluster relative to resting HBCs (`oeHBC1_findMotif.sh`)
+17. Look for transcription factor motifs in the top 1000 most enriched genes in the activated HBC1 cluster relative to resting HBCs (`oeHBC_findMotif.sh`)
 
 ### Dependencies/useful R packages:
 
-- SCONE (normalization): https://github.com/YosefLab/scone
-- clusterExperiment (clustering): https://github.com/epurdom/clusterExperiment
+- SCONE (normalization): http://bioconductor.org/packages/release/bioc/html/scone.html
+- clusterExperiment (clustering): http://bioconductor.org/packages/release/bioc/html/clusterExperiment.html
 - slingshot (lineage trajectory algorithm): https://github.com/kstreet13/slingshot
